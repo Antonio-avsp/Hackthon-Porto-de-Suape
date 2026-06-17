@@ -1,0 +1,12 @@
+# Dependências / artefatos
+node_modules/
+package.json
+package-lock.json
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
