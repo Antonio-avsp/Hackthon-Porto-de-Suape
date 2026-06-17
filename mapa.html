@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa & GIS · Sentinela</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <div class="app" data-page="mapa" data-title="Mapa & GIS" data-sub="Georreferenciamento de pontos, áreas licenciadas e evidências">
+    <div class="main">
+      <main class="content">
+
+        <div class="page-head">
+          <div><h2>Mapa Ambiental — Complexo de Suape</h2><p>6 pontos monitorados · 2 em alerta · evidências com captura automática de GPS</p></div>
+          <div class="flex gap-12">
+            <button class="btn btn--ghost btn--sm"><span data-icon="crosshair" data-size="16"></span> Minha localização</button>
+            <button class="btn btn--ghost btn--sm"><span data-icon="layers" data-size="16"></span> Camadas</button>
+          </div>
+        </div>
+
+        <div class="grid cols-3">
+          <!-- Mapa -->
+          <div class="card flush span-2" style="padding:0">
+            <div class="mapwrap">
+              <svg viewBox="0 0 800 460" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%">
+                <rect width="800" height="460" fill="#e9f1e5"/>
+                <!-- baía / água -->
+                <path d="M800 460 L800 90 Q580 150 540 300 Q520 390 380 460 Z" fill="#cfe0f2"/>
+                <path d="M540 300 Q470 270 360 250 L350 272 Q460 295 525 330 Z" fill="#bcd4ec"/>
+                <!-- vegetação -->
+                <path d="M0 0 L250 0 Q230 90 150 130 Q60 165 0 150 Z" fill="#d7e8cf"/>
+                <!-- vias -->
+                <path d="M60 380 Q300 320 560 300" stroke="#cdd6c6" stroke-width="6" fill="none" stroke-dasharray="2 0"/>
+                <path d="M300 60 L320 320" stroke="#cdd6c6" stroke-width="6" fill="none"/>
+                <!-- terminais -->
+                <g font-family="Inter" font-size="11" font-weight="700" fill="#244e8f">
+                  <rect x="540" y="150" width="96" height="46" rx="7" fill="#dfe8f4" stroke="#b9cdec"/><text x="588" y="177" text-anchor="middle">Terminal TGL</text>
+                  <rect x="450" y="245" width="92" height="40" rx="7" fill="#dfe8f4" stroke="#b9cdec"/><text x="496" y="269" text-anchor="middle">Tecon</text>
+                  <rect x="560" y="300" width="120" height="30" rx="7" fill="#dfe8f4" stroke="#b9cdec"/><text x="620" y="319" text-anchor="middle">Cais Múltiplo Uso</text>
+                  <rect x="170" y="150" width="120" height="58" rx="7" fill="#e4eede" stroke="#cfe0c6"/><text x="230" y="183" text-anchor="middle" fill="#1b7a33">Retroárea Norte</text>
+                </g>
+              </svg>
+              <div class="map-grid"></div>
+
+              <!-- Pins -->
+              <div class="map-pin" style="left:64%;top:64%"><div class="pin-bubble">PM-03 · Água</div><div class="pin-dot" style="background:#DC3545"></div></div>
+              <div class="map-pin" style="left:31%;top:42%"><div class="pin-bubble">PM-01 · Água</div><div class="pin-dot" style="background:#28A745"></div></div>
+              <div class="map-pin" style="left:73%;top:40%"><div class="pin-bubble">Área TGL</div><div class="pin-dot" style="background:#2E60AD"></div></div>
+              <div class="map-pin" style="left:27%;top:33%"><div class="pin-bubble">Supressão N.</div><div class="pin-dot" style="background:#FCB316"></div></div>
+              <div class="map-pin" style="left:52%;top:78%"><div class="pin-bubble">Captação SE-02</div><div class="pin-dot" style="background:#28A745"></div></div>
+              <div class="map-pin" style="left:80%;top:72%"><div class="pin-bubble">Doca 2 · PEI</div><div class="pin-dot" style="background:#2E60AD"></div></div>
+            </div>
+          </div>
+
+          <!-- Painel lateral -->
+          <div class="grid" style="gap:18px;align-content:start">
+            <div class="card">
+              <div class="card__head"><div><h3>Camadas</h3></div></div>
+              <div class="stat-list">
+                <div class="stat-row"><span class="sr-k"><span class="sr-ico bg-blue-50" data-icon="map-pin"></span>Pontos de monitoramento</span><span class="switch"></span></div>
+                <div class="stat-row"><span class="sr-k"><span class="sr-ico bg-green-50" data-icon="layers"></span>Áreas licenciadas</span><span class="switch"></span></div>
+                <div class="stat-row"><span class="sr-k"><span class="sr-ico bg-amber-50" data-icon="leaf"></span>Supressão vegetal</span><span class="switch off"></span></div>
+                <div class="stat-row"><span class="sr-k"><span class="sr-ico bg-blue-50" data-icon="activity"></span>Recursos hídricos</span><span class="switch"></span></div>
+                <div class="stat-row"><span class="sr-k"><span class="sr-ico bg-gray-50" data-icon="flag"></span>Limites do porto</span><span class="switch off"></span></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card__head"><div><h3>Ponto selecionado</h3></div><span class="badge badge--red"><span class="tdot"></span>Alerta</span></div>
+              <h4 style="font-size:15px">PM-03 — Qualidade da Água</h4>
+              <p class="note" style="margin:3px 0 14px">Canal de Suape · margem leste</p>
+              <dl class="dl">
+                <dt>Coordenadas</dt><dd>8°23′S 34°57′W</dd>
+                <dt>Condicionante</dt><dd>C-118</dd>
+                <dt>Última coleta</dt><dd>10/06/2026</dd>
+                <dt>Evidências</dt><dd>3 fotos · 1 laudo</dd>
+                <dt>Parâmetro</dt><dd style="color:var(--red)">Turbidez ↑</dd>
+              </dl>
+              <button class="btn btn--primary btn--sm wfull mt-16"><span data-icon="image" data-size="16"></span> Ver evidências</button>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>hydrateIcons(document);</script>
+</body>
+</html>

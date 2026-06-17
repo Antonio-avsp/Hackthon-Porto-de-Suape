@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Licenças & Condicionantes · Sentinela</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <div class="app" data-page="licencas" data-title="Licenças & Condicionantes" data-sub="Carteira ambiental centralizada e rastreável">
+    <div class="main">
+      <main class="content">
+
+        <div class="page-head">
+          <div><h2>Carteira de Licenças</h2><p>Exibindo 7 de 28 licenças ativas · integrado a CPRH, IBAMA e APAC</p></div>
+          <div class="flex gap-12">
+            <button class="btn btn--ghost btn--sm"><span data-icon="filter" data-size="16"></span> Filtros</button>
+            <button class="btn btn--accent btn--sm"><span data-icon="scan" data-size="16"></span> Importar licença (IA)</button>
+          </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="grid cols-4">
+          <div class="kpi"><div class="kpi__top"><div class="kpi__icon blue"><span data-icon="file-check"></span></div></div><div class="kpi__val">28</div><div class="kpi__label">Licenças ativas</div></div>
+          <div class="kpi"><div class="kpi__top"><div class="kpi__icon green"><span data-icon="check-circle"></span></div></div><div class="kpi__val">19</div><div class="kpi__label">Válidas</div></div>
+          <div class="kpi"><div class="kpi__top"><div class="kpi__icon amber"><span data-icon="clock"></span></div></div><div class="kpi__val">6</div><div class="kpi__label">Próx. do vencimento</div></div>
+          <div class="kpi"><div class="kpi__top"><div class="kpi__icon red"><span data-icon="x-circle"></span></div></div><div class="kpi__val">1</div><div class="kpi__label">Vencidas</div></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex items-center justify-between mt-24" style="margin-bottom:16px">
+          <div class="segmented" data-tabs="lc">
+            <button class="is-active" data-tab="lic">Licenças (7)</button>
+            <button data-tab="cond">Condicionantes (12)</button>
+          </div>
+        </div>
+
+        <!-- Pane: Licenças -->
+        <div data-pane="lc" data-tab-value="lic">
+          <div class="card flush">
+            <div style="padding:16px 16px 0">
+              <div class="segmented" data-filter-group="lic">
+                <button class="is-active" data-filter="all">Todas</button>
+                <button data-filter="valida">Válidas</button>
+                <button data-filter="atencao">Vencendo</button>
+                <button data-filter="vencida">Vencidas</button>
+                <button data-filter="renovacao">Em renovação</button>
+              </div>
+            </div>
+            <div class="table-wrap mt-16">
+              <table class="data">
+                <thead><tr>
+                  <th>Licença</th><th>Objeto</th><th>Órgão</th><th>Validade</th><th>Condic.</th><th>Responsável</th><th>Status</th><th></th>
+                </tr></thead>
+                <tbody id="tbLic"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pane: Condicionantes -->
+        <div data-pane="lc" data-tab-value="cond" style="display:none">
+          <div class="card flush">
+            <div style="padding:16px 16px 0">
+              <div class="segmented" data-filter-group="cond">
+                <button class="is-active" data-filter="all">Todas</button>
+                <button data-filter="cumprida">Cumpridas</button>
+                <button data-filter="andamento">Em andamento</button>
+                <button data-filter="atencao">Atenção</button>
+                <button data-filter="atrasada">Atrasadas</button>
+              </div>
+            </div>
+            <div class="table-wrap mt-16">
+              <table class="data">
+                <thead><tr>
+                  <th>ID</th><th>Condicionante</th><th>Periodicidade</th><th>Prazo</th><th>Progresso</th><th>Evid.</th><th>Risco</th><th>Responsável</th><th>Status</th>
+                </tr></thead>
+                <tbody id="tbCond"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/charts.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    const ini = n => n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    const avaColors = ['','amber','green','gray','purple'];
+    const colorFor = n => avaColors[(n.charCodeAt(0)) % avaColors.length];
+
+    /* Licenças */
+    document.getElementById('tbLic').innerHTML = LICENCAS.map(l=>{
+      const st = LIC_STATUS[l.status];
+      const d = daysTo(l.validade);
+      const prazoCls = d<0 ? 'badge--red' : (d<=60 ? 'badge--amber' : 'badge--gray');
+      return `<tr data-row-scope="lic" data-status="${l.status}">
+        <td><div class="t-strong">${l.id}</div><div class="t-muted">${l.tipo}</div></td>
+        <td>${l.objeto}</td>
+        <td><span class="org-tag">${l.orgao}</span></td>
+        <td><div class="t-strong">${fmtDate(l.validade)}</div><span class="badge ${prazoCls}" style="margin-top:4px">${prazoLabel(l.validade)}</span></td>
+        <td><span class="chip"><span data-icon="clipboard"></span>${l.cond}</span></td>
+        <td><div class="flex items-center gap-8"><div class="avatar sm ${colorFor(l.resp)}">${ini(l.resp)}</div>${l.resp}</div></td>
+        <td><span class="badge ${st.badge}"><span class="tdot"></span>${st.label}</span></td>
+        <td><button class="icon-btn" style="width:32px;height:32px"><span data-icon="chevron-right" data-size="16"></span></button></td>
+      </tr>`;
+    }).join('');
+
+    /* Condicionantes */
+    document.getElementById('tbCond').innerHTML = CONDICIONANTES.map(c=>{
+      const st = COND_STATUS[c.status];
+      const pcls = c.prog>=100?'green':(c.prog<40?'red':'amber');
+      const riscoCls = c.risco>=0.75?'badge--red':(c.risco>=0.5?'badge--amber':(c.risco>=0.25?'badge--amber':'badge--green'));
+      return `<tr data-row-scope="cond" data-status="${c.status}">
+        <td class="t-strong">${c.id}</td>
+        <td><div class="t-strong">${c.desc}</div><div class="t-muted">${c.licenca} · ${c.area}</div></td>
+        <td><span class="tag-soft">${c.period}</span></td>
+        <td><div class="t-strong">${fmtDate(c.prazo)}</div><div class="t-muted">${prazoLabel(c.prazo)}</div></td>
+        <td style="min-width:120px"><div class="flex items-center gap-8"><div class="progress ${pcls}" style="flex:1"><span style="width:${c.prog}%"></span></div><b style="font-size:12px">${c.prog}%</b></div></td>
+        <td><span class="chip"><span data-icon="paperclip"></span>${c.ev}</span></td>
+        <td><span class="badge ${riscoCls}">${riscoLabel(c.risco)}</span></td>
+        <td><div class="flex items-center gap-8"><div class="avatar sm ${colorFor(c.resp)}">${ini(c.resp)}</div><span class="t-muted">${c.resp.split(' ')[0]}</span></div></td>
+        <td><span class="badge ${st.badge}"><span class="tdot"></span>${st.label}</span></td>
+      </tr>`;
+    }).join('');
+
+    hydrateIcons(document);
+  </script>
+</body>
+</html>

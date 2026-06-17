@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evidências · Sentinela</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <div class="app" data-page="evidencias" data-title="Evidências Ambientais" data-sub="Cumprir é importante. Comprovar é indispensável.">
+    <div class="main">
+      <main class="content">
+
+        <div class="page-head">
+          <div><h2>Repositório de Evidências</h2><p>Cada evidência vinculada à licença, condicionante, responsável e protocolo</p></div>
+          <button class="btn btn--accent btn--sm"><span data-icon="plus" data-size="16"></span> Nova evidência</button>
+        </div>
+
+        <div class="grid cols-4">
+          <div class="kpi"><div class="kpi__top"><div class="kpi__icon blue"><span data-icon="camera"></span></div></div><div class="kpi__val">318</div><div class="kpi__label">Evidências registradas</div></div>
+          <div class="kpi"><div class="kpi__top"><div class="kpi__icon green"><span data-icon="check-circle"></span></div></div><div class="kpi__val">274</div><div class="kpi__label">Validadas</div></div>
+          <div class="kpi"><div class="kpi__top"><div class="kpi__icon amber"><span data-icon="eye"></span></div></div><div class="kpi__val">32</div><div class="kpi__label">Em análise</div></div>
+          <div class="kpi"><div class="kpi__top"><div class="kpi__icon green"><span data-icon="link"></span></div></div><div class="kpi__val">96%</div><div class="kpi__label">Vinculadas a condicionantes</div></div>
+        </div>
+
+        <div class="mt-24" style="overflow-x:auto;padding-bottom:4px;margin-bottom:16px">
+          <div class="segmented" data-filter-group="ev" style="white-space:nowrap">
+            <button class="is-active" data-filter="all">Todas</button>
+            <button data-filter="foto">Fotos</button>
+            <button data-filter="relatorio">Relatórios</button>
+            <button data-filter="art">ARTs</button>
+            <button data-filter="laudo">Laudos</button>
+            <button data-filter="protocolo">Protocolos</button>
+            <button data-filter="mapa">Mapas</button>
+            <button data-filter="oficio">Ofícios</button>
+          </div>
+        </div>
+
+        <div class="grid cols-4" id="evGrid"></div>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    const ini = n => n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    const TM = {
+      'Foto de campo':    {ic:'image',     cls:'bg-blue-50',  slug:'foto'},
+      'Relatório técnico':{ic:'file',      cls:'bg-blue-50',  slug:'relatorio'},
+      'ART':              {ic:'file-check',cls:'bg-green-50', slug:'art'},
+      'Laudo':            {ic:'clipboard', cls:'bg-purple-50',slug:'laudo'},
+      'Protocolo':        {ic:'inbox',     cls:'bg-amber-50', slug:'protocolo'},
+      'Mapa':             {ic:'map',       cls:'bg-green-50', slug:'mapa'},
+      'Ofício':           {ic:'mail',      cls:'bg-gray-50',  slug:'oficio'},
+    };
+    const EVST = {
+      validada:{label:'Validada',   badge:'badge--green'},
+      analise: {label:'Em análise', badge:'badge--amber'},
+      enviada: {label:'Protocolada',badge:'badge--blue'},
+    };
+    const condMap = {}; CONDICIONANTES.forEach(c=>condMap[c.id]=c);
+
+    document.getElementById('evGrid').innerHTML = EVIDENCIAS.map(e=>{
+      const tm = TM[e.tipo], st = EVST[e.status], c = condMap[e.cond];
+      const geo = e.geo!=='—' ? `<span class="chip"><span data-icon="crosshair"></span>${e.geo}</span>` : '';
+      return `<div class="card ev-card" data-row-scope="ev" data-status="${tm.slug}">
+        <div class="ev-thumb ${tm.cls}"><span data-icon="${tm.ic}"></span><span class="fmt">${e.fmt}</span></div>
+        <span class="tag-soft">${e.tipo}</span>
+        <h5>${e.titulo}</h5>
+        <div class="flex gap-8" style="flex-wrap:wrap;margin-top:8px">
+          <span class="chip" title="${c?c.desc:''}"><span data-icon="link"></span>${e.cond}</span>
+          ${geo}
+        </div>
+        <div class="ev-foot">
+          <div class="flex items-center gap-8">
+            <div class="avatar sm">${ini(e.autor)}</div>
+            <div><div style="font-size:12px;font-weight:600">${e.autor}</div><div class="t-muted" style="font-size:11px">${fmtDate(e.data)}</div></div>
+          </div>
+          <span class="badge ${st.badge}">${st.label}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    hydrateIcons(document);
+  </script>
+</body>
+</html>
