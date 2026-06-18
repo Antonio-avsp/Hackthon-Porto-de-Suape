@@ -7,12 +7,16 @@
 Plataforma que centraliza licenças, condicionantes, prazos e evidências ambientais —
 transformando dados dispersos em **inteligência, prevenção, conformidade e governança**.
 
-A aplicação é um app **React (Vite + React 18)** em [`gml-react/`](gml-react/), organizado em
-componentes, com leitura de licenças por **IA (OCR/visão)**.
+A aplicação tem duas partes:
+
+- **Frontend** — app **React (Vite + React 18)** em [`gml-react/`](gml-react/), com leitura de licenças por **IA (OCR/visão)**.
+- **Backend** — API **Node.js + Express** em [`backend/`](backend/), que centraliza as chamadas de IA e integra o **Gemini Flash Lite 3.1** com a chave protegida no servidor.
 
 ---
 
 ## ▶️ Como executar
+
+**Frontend (React):**
 
 ```bash
 cd gml-react
@@ -20,6 +24,17 @@ npm install
 npm run dev        # http://localhost:5173
 # ou: npm run build && npm run preview
 ```
+
+**Backend (API + IA):**
+
+```bash
+cd backend
+npm install
+cp .env.example .env   # preencha GEMINI_API_KEY
+npm run dev            # http://localhost:3333
+```
+
+Detalhes e endpoints: [`backend/README.md`](backend/README.md).
 
 ---
 
@@ -75,9 +90,17 @@ gml-react/
     ├── screens/     Dashboard · Licencas · Prazos · Evidencias · AssistenteIA
     ├── modals/      LicencaForm · LicencaDetail · Historico · DemandaForm · AIKeyConfig
     └── lib/         ai.js (visão/OCR + Excel) · geo.js (geolocalização)
+
+backend/
+└── src/
+    ├── server.js · app.js              # bootstrap + configuração do Express
+    ├── config/ · routes/ · controllers/
+    ├── services/   geminiService · license.service
+    ├── integrations/gemini/  geminiClient   # cliente HTTP da LLM
+    ├── middlewares/ · models/ · repositories/ · utils/
 ```
 
-Detalhes: [`gml-react/README.md`](gml-react/README.md).
+Detalhes: [`gml-react/README.md`](gml-react/README.md) · [`backend/README.md`](backend/README.md).
 
 ## 🛠️ Tecnologia
 

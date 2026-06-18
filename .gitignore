@@ -3,6 +3,10 @@ node_modules/
 package.json
 package-lock.json
 
+# O backend versiona seu manifesto e lockfile (exceções às regras acima)
+!backend/package.json
+!backend/package-lock.json
+
 # Sistema
 .DS_Store
 Thumbs.db
