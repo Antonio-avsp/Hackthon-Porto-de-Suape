@@ -1,0 +1,8 @@
+node_modules
+dist
+.vite
+*.local
+
+# package.json/lock são ignorados na raiz do repo; aqui eles são essenciais
+!package.json
+!package-lock.json

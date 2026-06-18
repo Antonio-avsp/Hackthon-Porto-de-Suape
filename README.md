@@ -27,29 +27,28 @@ python3 -m http.server 8080
 
 O fluxo começa na tela de **login** (`index.html`) → **Dashboard** → demais módulos pela barra lateral.
 
-### 🧩 Versão single-page (`gml.html`)
+### 🧩 Aplicação React (`gml-react/`)
 
-`gml.html` é a versão **single-page** e **simplificada** da plataforma — HTML/CSS/JS puro,
-**sem build e sem framework**. Foco em menos telas, menos cliques e mais automação/IA.
+A versão **simplificada e oficial** da plataforma é um app **React (Vite + React 18)** em
+`gml-react/`, organizado em componentes. Foco em menos telas, menos cliques e mais automação/IA.
 
-Possui apenas **5 áreas**:
+Possui **5 áreas**:
 
 | Aba | O que faz |
 |-----|-----------|
 | **Dashboard** | Cronograma Gantt de condicionantes, alertas automáticos, licenças por categoria (AUT, LP, LI, LO, RLO, PLI, CP, LS) e agenda (calendário) |
-| **Licenças** | Cadastro, edição, exclusão e histórico das licenças, com os 8 tipos e condicionantes vinculadas |
+| **Licenças** | Tabela com responsável e status; clique abre o **modal de detalhe**; cadastro, edição, exclusão e histórico |
 | **Prazos e Demandas** | Demandas e prazos unificados, com responsável, prioridade, status e alertas |
 | **Evidências** | Upload (imagem/doc/vídeo) e captura no app, com **geolocalização automática** (lat, long, data, hora, usuário) e mini-mapa |
-| **Assistente IA** | Chat moderno com histórico e anexos: envie o PDF/imagem de uma licença e a IA extrai tipo, órgão, processo, validade e condicionantes, **preenche o cadastro** e **exporta para Excel** |
+| **Assistente IA** | Chat com anexos: envie o PDF/imagem de uma licença e a IA extrai tipo, órgão, processo, validade e condicionantes, **preenche o cadastro** e **exporta para Excel** |
 
 ```bash
-# basta abrir; recomendado servir via http
-python3 -m http.server 8080
-# depois acesse  http://localhost:8080/gml.html
+cd gml-react
+npm install
+npm run dev        # http://localhost:5173
+# ou: npm run build && npm run preview
 ```
 
-> A interface funciona **offline** (apenas a fonte Hanken Grotesk vem do Google Fonts).
->
 > **Leitura de licenças por IA (OCR/visão):** em **⚙ Configurar IA** informe sua chave da
 > API Anthropic (`sk-ant-…`, salva apenas no navegador). Ao anexar um **PDF ou imagem** de
 > licença, o app chama a **API do Claude** (`claude-opus-4-8`) com visão/PDF e extração
@@ -58,6 +57,8 @@ python3 -m http.server 8080
 >
 > ⚠️ A chamada é feita direto do navegador (com `anthropic-dangerous-direct-browser-access`).
 > Isso expõe a chave — **em produção, faça a chamada por um backend**.
+
+Detalhes e estrutura de pastas: [`gml-react/README.md`](gml-react/README.md).
 
 ---
 
