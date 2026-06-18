@@ -13,6 +13,13 @@ const DEFAULT_SYSTEM_INSTRUCTION =
   'Responda em português do Brasil, de forma objetiva, técnica e cordial, ' +
   'no contexto de licenças ambientais, condicionantes, prazos e conformidade.';
 
+/** Contexto temporal injetado no prompt para a IA responder com a data correta. */
+function currentDateContext() {
+  const now = new Date();
+  const data = now.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  return `Para sua referência, a data de hoje é ${data} — considere ${now.getFullYear()} como o ano atual ao tratar de prazos, validades e vencimentos.`;
+}
+
 /** Converte o histórico do chat para o formato `contents` do Gemini. */
 function buildContents(prompt, history = []) {
   const contents = history
@@ -41,10 +48,13 @@ export const geminiService = {
    * @returns {Promise<{ reply: string }>}
    */
   async chat({ prompt, history = [], systemInstruction, temperature = 0.4 }) {
+    const base = systemInstruction || DEFAULT_SYSTEM_INSTRUCTION;
+    const instruction = `${base} ${currentDateContext()}`;
+
     const { text } = await geminiClient.generateContent(buildContents(prompt, history), {
       systemInstruction: {
         role: 'system',
-        parts: [{ text: systemInstruction || DEFAULT_SYSTEM_INSTRUCTION }],
+        parts: [{ text: instruction }],
       },
       generationConfig: { temperature },
     });
