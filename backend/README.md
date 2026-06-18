@@ -15,7 +15,7 @@ Frontend → API Backend → geminiService → Gemini Flash Lite 3.1 → Backend
 - **Helmet · CORS · express-rate-limit** — segurança básica
 - **Multer** — upload de PDF/imagem em memória
 - **Morgan** + logger próprio — logs estruturados
-- **Google Gemini** (`gemini-flash-lite-3.1`) — via REST, sem lock-in de SDK
+- **Google Gemini** (`gemini-3.1-flash-lite`) — via REST, sem lock-in de SDK
 
 ## 🗂️ Arquitetura (separação de responsabilidades)
 
@@ -63,7 +63,7 @@ HTTP; o *client* não conhece regra de negócio. Trocar de modelo/provedor exige
    | `PORT`              | Porta do servidor                                      | `3333`                    |
    | `CORS_ORIGIN`       | Origens liberadas (vírgula) ou `*`                     | `http://localhost:5173`   |
    | `GEMINI_API_KEY`    | **Chave da API** ([Google AI Studio][key])             | —                         |
-   | `GEMINI_MODEL`      | Modelo usado                                           | `gemini-flash-lite-3.1`   |
+   | `GEMINI_MODEL`      | Modelo usado                                           | `gemini-3.1-flash-lite`   |
    | `GEMINI_TIMEOUT_MS` | Timeout das chamadas à IA                              | `30000`                   |
    | `GEMINI_MAX_RETRIES`| Retentativas em erro transitório                       | `2`                       |
    | `API_KEY`           | (Opcional) protege as rotas via header `x-api-key`     | —                         |
@@ -87,7 +87,7 @@ Saída esperada:
 
 ```
 🚀 GML Backend rodando em http://localhost:3333 (development)
-   IA: gemini-flash-lite-3.1 via Google Gemini
+   IA: gemini-3.1-flash-lite via Google Gemini
 ```
 
 > Sem `GEMINI_API_KEY`, o servidor sobe normalmente, mas as rotas de IA respondem
