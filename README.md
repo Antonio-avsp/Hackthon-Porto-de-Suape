@@ -27,6 +27,23 @@ python3 -m http.server 8080
 
 O fluxo começa na tela de **login** (`index.html`) → **Dashboard** → demais módulos pela barra lateral.
 
+### 🧩 Versão single-page (`gml.html`)
+
+`gml.html` é a versão **single-page** da plataforma, gerada a partir do **Claude Design**
+(`Plataforma Gestao Ambiental GML.dc.html`). Toda a aplicação — sidebar, dashboard, licenças,
+prazos, evidências, stakeholders, demandas, leitura por IA e app de campo — vive em **uma única
+tela reativa** (React, renderizada em runtime pelo `assets/js/dc-runtime.js`).
+
+```bash
+# recomendado servir via http para a navegação completa funcionar
+python3 -m http.server 8080
+# depois acesse  http://localhost:8080/gml.html
+```
+
+> ⚠️ Requer internet (React/ReactDOM/Babel via unpkg + fonte Hanken Grotesk via Google Fonts).
+> O botão **“Extrair condicionantes com IA”** usa `window.claude.complete()`, disponível apenas
+> no ambiente de preview do Claude Design; fora dele, a extração exibe um estado de erro amigável.
+
 ---
 
 ## 🧭 Telas / Módulos

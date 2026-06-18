@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GML · Plataforma de Gestão Ambiental</title>
+<meta name="description" content="Plataforma de Gestão Ambiental GML — Porto de Suape. Licenças, condicionantes, prazos, evidências, matriz de responsabilidade, demandas e assistente de IA.">
+<script src="assets/js/dc-runtime.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#C7D2E2;border-radius:8px;border:3px solid transparent;background-clip:content-box}
+  ::-webkit-scrollbar-thumb:hover{background:#A9B8CF;background-clip:content-box}
+  @keyframes gmlspin{to{transform:rotate(360deg)}}
+  @keyframes gmlpulse{0%,100%{box-shadow:0 0 0 0 rgba(220,53,69,.5)}70%{box-shadow:0 0 0 6px rgba(220,53,69,0)}}
+</style>
+</helmet>
+
+<div style="display:flex;height:100vh;width:100%;overflow:hidden;font-family:'Hanken Grotesk',system-ui,sans-serif;background:#EEF2F8;color:#1B2A4A;-webkit-font-smoothing:antialiased">
+
+  <aside style="width:248px;flex:none;height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#2E60AD 0%,#234E91 55%,#1A3D74 100%);color:#fff;position:relative">
+    <div style="padding:22px 20px 18px;display:flex;align-items:center;gap:11px;border-bottom:1px solid rgba(255,255,255,.12)">
+      <div style="width:38px;height:38px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;flex:none">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 19c0-7 5-12 14-13-1 9-6 13-13 13Z" fill="#28A745"></path><path d="M6 18c3-5 7-8 11-9" stroke="#2E60AD" stroke-width="1.6" stroke-linecap="round"></path></svg>
+      </div>
+      <div style="line-height:1.05">
+        <div style="font-weight:800;font-size:18px;letter-spacing:.02em">GML</div>
+        <div style="font-size:10.5px;font-weight:500;color:rgba(255,255,255,.72);letter-spacing:.02em">Gestão Ambiental</div>
+      </div>
+    </div>
+
+    <nav style="position:relative;padding:14px 12px;flex:1;overflow-y:auto">
+      <div style="position:absolute;left:12px;right:12px;top:14px;height:42px;border-radius:11px;background:rgba(255,255,255,.16);box-shadow:inset 3px 0 0 #FCB316;transition:transform .28s cubic-bezier(.4,0,.2,1);transform:translateY({{ navTop }}px);pointer-events:none"></div>
+
+      <div onclick="{{ setScreen }}" data-k="dashboard" style="position:relative;z-index:1;height:42px;margin-bottom:6px;display:flex;align-items:center;gap:12px;padding:0 14px;border-radius:11px;cursor:pointer;font-size:13.5px;font-weight:600;color:rgba(255,255,255,.92)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
+        Dashboard</div>
+      <div onclick="{{ setScreen }}" data-k="licencas" style="position:relative;z-index:1;height:42px;margin-bottom:6px;display:flex;align-items:center;gap:12px;padding:0 14px;border-radius:11px;cursor:pointer;font-size:13.5px;font-weight:600;color:rgba(255,255,255,.92)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h8l4 4v14H6z" stroke-linejoin="round"></path><path d="M14 3v4h4M9 12h6M9 16h6" stroke-linecap="round"></path></svg>
+        Licenças</div>
+      <div onclick="{{ setScreen }}" data-k="prazos" style="position:relative;z-index:1;height:42px;margin-bottom:6px;display:flex;align-items:center;gap:12px;padding:0 14px;border-radius:11px;cursor:pointer;font-size:13.5px;font-weight:600;color:rgba(255,255,255,.92)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 9h18M8 3v4M16 3v4" stroke-linecap="round"></path></svg>
+        Prazos &amp; Alertas</div>
+      <div onclick="{{ setScreen }}" data-k="evidencias" style="position:relative;z-index:1;height:42px;margin-bottom:6px;display:flex;align-items:center;gap:12px;padding:0 14px;border-radius:11px;cursor:pointer;font-size:13.5px;font-weight:600;color:rgba(255,255,255,.92)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="14" rx="2"></rect><circle cx="12" cy="13" r="3.2"></circle><path d="M8 6l1.5-2h5L16 6" stroke-linejoin="round"></path></svg>
+        Evidências</div>
+      <div onclick="{{ setScreen }}" data-k="stakeholders" style="position:relative;z-index:1;height:42px;margin-bottom:6px;display:flex;align-items:center;gap:12px;padding:0 14px;border-radius:11px;cursor:pointer;font-size:13.5px;font-weight:600;color:rgba(255,255,255,.92)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="9" r="2.4"></circle><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5M15 14c2.5 0 5 1.7 5 4.5" stroke-linecap="round"></path></svg>
+        Stakeholders</div>
+      <div onclick="{{ setScreen }}" data-k="demandas" style="position:relative;z-index:1;height:42px;margin-bottom:6px;display:flex;align-items:center;gap:12px;padding:0 14px;border-radius:11px;cursor:pointer;font-size:13.5px;font-weight:600;color:rgba(255,255,255,.92)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7l9 6 9-6" stroke-linecap="round" stroke-linejoin="round"></path><rect x="3" y="5" width="18" height="14" rx="2"></rect></svg>
+        Demandas</div>
+      <div onclick="{{ setScreen }}" data-k="ia" style="position:relative;z-index:1;height:42px;margin-bottom:6px;display:flex;align-items:center;gap:12px;padding:0 14px;border-radius:11px;cursor:pointer;font-size:13.5px;font-weight:600;color:rgba(255,255,255,.92)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3Z" stroke-linejoin="round"></path><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8L18 15Z" stroke-linejoin="round"></path></svg>
+        Leitura por IA</div>
+      <div onclick="{{ setScreen }}" data-k="mobile" style="position:relative;z-index:1;height:42px;margin-bottom:6px;display:flex;align-items:center;gap:12px;padding:0 14px;border-radius:11px;cursor:pointer;font-size:13.5px;font-weight:600;color:rgba(255,255,255,.92)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="7" y="2.5" width="10" height="19" rx="2.5"></rect><path d="M10.5 18.5h3" stroke-linecap="round"></path></svg>
+        App de Campo</div>
+    </nav>
+
+    <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:11px">
+      <div style="width:34px;height:34px;border-radius:50%;background:#FCB316;color:#1A3D74;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex:none">MA</div>
+      <div style="line-height:1.15;min-width:0">
+        <div style="font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Marina Alves</div>
+        <div style="font-size:10.5px;color:rgba(255,255,255,.65)">Analista Ambiental</div>
+      </div>
+    </div>
+  </aside>
+
+  <section style="flex:1;min-width:0;height:100vh;display:flex;flex-direction:column">
+
+    <header style="flex:none;height:66px;background:#fff;border-bottom:1px solid #E2E8F2;display:flex;align-items:center;justify-content:space-between;padding:0 28px">
+      <div style="line-height:1.12">
+        <div style="font-size:18px;font-weight:800;letter-spacing:-.01em">{{ pageTitle }}</div>
+        <div style="font-size:12.5px;color:#6C757D;font-weight:500">{{ pageSub }}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="display:flex;align-items:center;gap:8px;background:#F4F7FB;border:1px solid #E2E8F2;border-radius:9px;padding:8px 12px;width:220px;color:#6C757D">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4" stroke-linecap="round"></path></svg>
+          <span style="font-size:12.5px">Buscar licença, prazo…</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:#6C757D;background:#F4F7FB;border:1px solid #E2E8F2;border-radius:9px;padding:8px 12px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2E60AD" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 9h18M8 3v4M16 3v4" stroke-linecap="round"></path></svg>
+          12 mai 2025
+        </div>
+        <div style="position:relative;width:40px;height:40px;border-radius:10px;background:#F4F7FB;border:1px solid #E2E8F2;display:flex;align-items:center;justify-content:center;cursor:pointer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1B2A4A" stroke-width="1.8"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z" stroke-linejoin="round"></path><path d="M10 19a2 2 0 0 0 4 0" stroke-linecap="round"></path></svg>
+          <span style="position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#DC3545;color:#fff;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;animation:gmlpulse 2s infinite">3</span>
+        </div>
+      </div>
+    </header>
+
+    <main style="flex:1;overflow-y:auto;padding:24px 28px 40px">
+
+      <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px">
+            <div style="display:flex;gap:8px;background:#fff;border:1px solid #E2E8F2;border-radius:11px;padding:5px">
+              <div onclick="{{ setDash }}" data-d="A" style="padding:7px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;color:#1B2A4A;background:#EEF2F8">Operacional</div>
+              <div onclick="{{ setDash }}" data-d="B" style="padding:7px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;color:#6C757D">Risco</div>
+              <div onclick="{{ setDash }}" data-d="C" style="padding:7px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;color:#6C757D">Agenda</div>
+            </div>
+            <div style="font-size:12px;color:#6C757D;font-weight:600">Layouts alternativos do dashboard executivo</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:16px">
+            <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;padding:16px;box-shadow:0 1px 2px rgba(20,42,75,.04)">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#6C757D">Licenças ativas</div>
+              <div style="font-size:30px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums">128</div>
+              <div style="font-size:11.5px;color:#28A745;font-weight:600;margin-top:2px">+4 no mês</div>
+            </div>
+            <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;padding:16px;box-shadow:0 1px 2px rgba(20,42,75,.04)">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#6C757D">Condicionantes</div>
+              <div style="font-size:30px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums">346</div>
+              <div style="font-size:11.5px;color:#6C757D;font-weight:600;margin-top:2px">em andamento</div>
+            </div>
+            <div style="background:#fff;border:1px solid #FCD68A;border-radius:14px;padding:16px;box-shadow:0 1px 2px rgba(20,42,75,.04)">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#9A6A00">Prazos &lt; 30 dias</div>
+              <div style="font-size:30px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums;color:#B8780A">23</div>
+              <div style="font-size:11.5px;color:#DC3545;font-weight:700;margin-top:2px">3 críticos</div>
+            </div>
+            <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;padding:16px;box-shadow:0 1px 2px rgba(20,42,75,.04)">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#6C757D">Evidências</div>
+              <div style="font-size:30px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums">842</div>
+              <div style="font-size:11.5px;color:#6C757D;font-weight:600;margin-top:2px">arquivos vinculados</div>
+            </div>
+            <div style="background:#fff;border:1px solid #B6E3C2;border-radius:14px;padding:16px;box-shadow:0 1px 2px rgba(20,42,75,.04)">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#1E7A34">Conformidade</div>
+              <div style="font-size:30px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums;color:#28A745">87%</div>
+              <div style="font-size:11.5px;color:#28A745;font-weight:600;margin-top:2px">+5 p.p. no trimestre</div>
+            </div>
+          </div>
+
+          <sc-if value="{{ dashA }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid;grid-template-columns:320px 1fr;gap:16px;margin-bottom:16px">
+              <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;padding:18px;box-shadow:0 1px 2px rgba(20,42,75,.04)">
+                <div style="font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6C757D;margin-bottom:14px">Status geral das obrigações</div>
+                <div style="display:flex;align-items:center;gap:18px">
+                  <div style="width:120px;height:120px;border-radius:50%;flex:none;background:conic-gradient(#28A745 0 42%,#2E60AD 42% 73%,#DC3545 73% 90%,#CBD5E3 90% 100%);display:flex;align-items:center;justify-content:center">
+                    <div style="width:78px;height:78px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                      <div style="font-size:22px;font-weight:800;line-height:1">87%</div>
+                      <div style="font-size:9.5px;color:#6C757D;font-weight:600">conforme</div>
+                    </div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:9px;font-size:12.5px;font-weight:600">
+                    <div style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:3px;background:#28A745"></span>Concluídas <span style="color:#6C757D;margin-left:auto">42%</span></div>
+                    <div style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:3px;background:#2E60AD"></span>Em andamento <span style="color:#6C757D;margin-left:auto">31%</span></div>
+                    <div style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:3px;background:#DC3545"></span>Atrasadas <span style="color:#6C757D;margin-left:auto">17%</span></div>
+                    <div style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:3px;background:#CBD5E3"></span>Não iniciadas <span style="color:#6C757D;margin-left:auto">10%</span></div>
+                  </div>
+                </div>
+                <div style="margin-top:18px;padding-top:16px;border-top:1px solid #EEF2F8">
+                  <div style="font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6C757D;margin-bottom:10px">Evolução de atendimentos</div>
+                  <svg viewBox="0 0 280 90" style="width:100%;height:auto"><defs><linearGradient id="gA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2E60AD" stop-opacity=".22"></stop><stop offset="1" stop-color="#2E60AD" stop-opacity="0"></stop></linearGradient></defs><path d="M5 70 L52 58 L99 62 L146 44 L193 34 L240 20 L275 14" fill="none" stroke="#2E60AD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 70 L52 58 L99 62 L146 44 L193 34 L240 20 L275 14 L275 88 L5 88Z" fill="url(#gA)"></path><g font-size="9" fill="#6C757D" font-family="Spline Sans Mono"><text x="5" y="88">JAN</text><text x="128" y="88">ABR</text><text x="252" y="88">JUN</text></g></svg>
+                </div>
+              </div>
+
+              <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;padding:18px;box-shadow:0 1px 2px rgba(20,42,75,.04);display:flex;flex-direction:column">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                  <div style="font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6C757D">Cronograma de condicionantes (Gantt)</div>
+                  <div style="display:flex;gap:12px;font-size:11px;font-weight:600;color:#6C757D">
+                    <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#28A745"></span>Concluída</span>
+                    <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#2E60AD"></span>Andamento</span>
+                    <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#FCB316"></span>Atenção</span>
+                    <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#DC3545"></span>Atrasada</span>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:200px 1fr;font-size:10.5px;font-weight:700;color:#6C757D;border-bottom:1px solid #EEF2F8;padding-bottom:6px;margin-top:8px">
+                  <div></div>
+                  <div style="display:grid;grid-template-columns:repeat(6,1fr);text-align:center">
+                    <div>JAN</div><div>FEV</div><div>MAR</div><div>ABR</div><div>MAI</div><div>JUN</div>
+                  </div>
+                </div>
+                <div style="position:relative">
+                  <div style="position:absolute;top:0;bottom:0;left:calc(200px + (100% - 200px) * 0.783);width:2px;background:#DC3545;z-index:2"><span style="position:absolute;top:-1px;left:-15px;font-size:9px;font-weight:700;color:#DC3545;background:#fff;padding:0 3px">HOJE</span></div>
+                  <sc-for list="{{ gantt }}" as="row" hint-placeholder-count="8">
+                    <div style="display:grid;grid-template-columns:200px 1fr;align-items:center;padding:7px 0;border-bottom:1px solid #F4F7FB">
+                      <div style="padding-right:12px;min-width:0">
+                        <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ row.nome }}</div>
+                        <div style="font-size:10px;color:#6C757D;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ row.resp }}</div>
+                      </div>
+                      <div style="position:relative;height:22px;background:#F4F7FB;border-radius:6px">
+                        <div style="position:absolute;top:3px;bottom:3px;border-radius:5px;left: {{ row.leftPct }}%;width: {{ row.widthPct }}%;background: {{ row.color }};display:flex;align-items:center;padding:0 7px;overflow:hidden">
+                          <span style="font-size:9.5px;font-weight:700;color:#fff;white-space:nowrap">{{ row.progPct }}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+              <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;padding:18px;box-shadow:0 1px 2px rgba(20,42,75,.04)">
+                <div style="font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6C757D;margin-bottom:12px">Alertas</div>
+                <div style="display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #F4F7FB">
+                  <span style="width:26px;height:26px;border-radius:7px;background:#FDEAEC;color:#DC3545;display:flex;align-items:center;justify-content:center;flex:none;font-weight:800;font-size:13px">!</span>
+                  <div style="font-size:12.5px;font-weight:600"><b>3 licenças</b> vencem nos próximos 30 dias</div>
+                </div>
+                <div style="display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #F4F7FB">
+                  <span style="width:26px;height:26px;border-radius:7px;background:#FEF4DD;color:#B8780A;display:flex;align-items:center;justify-content:center;flex:none;font-weight:800;font-size:13px">!</span>
+                  <div style="font-size:12.5px;font-weight:600"><b>5 condicionantes</b> com prazo em 15 dias</div>
+                </div>
+                <div style="display:flex;gap:11px;align-items:flex-start;padding:9px 0">
+                  <span style="width:26px;height:26px;border-radius:7px;background:#EEF2F8;color:#6C757D;display:flex;align-items:center;justify-content:center;flex:none">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h8l4 4v14H6z"></path></svg>
+                  </span>
+                  <div style="font-size:12.5px;font-weight:600"><b>2 relatórios</b> pendentes de protocolo</div>
+                </div>
+              </div>
+
+              <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;padding:18px;box-shadow:0 1px 2px rgba(20,42,75,.04)">
+                <div style="font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6C757D;margin-bottom:12px">Contagem regressiva</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #F4F7FB"><span style="font-family:'Spline Sans Mono';font-size:12px;font-weight:600">LIC-2023-045</span><span style="font-size:14px;font-weight:800;color:#DC3545">07 dias</span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #F4F7FB"><span style="font-family:'Spline Sans Mono';font-size:12px;font-weight:600">LP-2024-118</span><span style="font-size:14px;font-weight:800;color:#FCB316">15 dias</span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0"><span style="font-family:'Spline Sans Mono';font-size:12px;font-weight:600">LOA-2022-007</span><span style="font-size:14px;font-weight:800;color:#FCB316">22 dias</span></div>
+              </div>
+
+              <div style="background:linear-gradient(135deg,#2E60AD,#1A3D74);border-radius:14px;padding:18px;box-shadow:0 1px 2px rgba(20,42,75,.04);color:#fff;display:flex;flex-direction:column;justify-content:space-between">
+                <div>
+                  <div style="font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:10px">Conformidade legal</div>
+                  <div style="font-size:13px;font-weight:600;line-height:1.45">Empreendimento <b>conforme</b> com a legislação ambiental vigente. Sem autuações no período.</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:16px">
+                  <span style="width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 3l7 3v6c0 5-3 8-7 9-4-1-7-4-7-9V6z" stroke-linejoin="round"></path><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+                  <div style="font-size:12.5px;font-weight:700">CPRH · IBAMA · APAC</div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ dashB }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px">
+              <div style="background:#fff;border:1px solid #E2E8F2;border-top:3px solid #DC3545;border-radius:14px;padding:16px">
+                <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#DC3545">Crítico</span><span style="width:10px;height:10px;border-radius:50%;background:#DC3545;animation:gmlpulse 2s infinite"></span></div>
+                <div style="font-size:34px;font-weight:800;margin-top:8px;font-variant-numeric:tabular-nums">3</div>
+                <div style="font-size:11.5px;color:#6C757D;font-weight:600">licenças e condicionantes vencendo</div>
+              </div>
+              <div style="background:#fff;border:1px solid #E2E8F2;border-top:3px solid #FCB316;border-radius:14px;padding:16px">
+                <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#B8780A">Atenção</span><span style="width:10px;height:10px;border-radius:50%;background:#FCB316"></span></div>
+                <div style="font-size:34px;font-weight:800;margin-top:8px;font-variant-numeric:tabular-nums">14</div>
+                <div style="font-size:11.5px;color:#6C757D;font-weight:600">obrigações em monitoramento</div>
+              </div>
+              <div style="background:#fff;border:1px solid #E2E8F2;border-top:3px solid #28A745;border-radius:14px;padding:16px">
+                <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#1E7A34">Conforme</span><span style="width:10px;height:10px;border-radius:50%;background:#28A745"></span></div>
+                <div style="font-size:34px;font-weight:800;margin-top:8px;font-variant-numeric:tabular-nums">329</div>
+                <div style="font-size:11.5px;color:#6C757D;font-weight:600">obrigações regulares</div>
+              </div>
+              <div style="background:linear-gradient(135deg,#2E60AD,#1A3D74);border-radius:14px;padding:16px;color:#fff">
+                <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:rgba(255,255,255,.7)">Índice de risco</div>
+                <div style="font-size:34px;font-weight:800;margin-top:8px;font-variant-numeric:tabular-nums">Baixo</div>
+                <div style="font-size:11.5px;color:rgba(255,255,255,.8);font-weight:600">−37% vs. trimestre anterior</div>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;padding:18px;box-shadow:0 1px 2px rgba(20,42,75,.04)">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                <div style="font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6C757D">Mapa de risco por prazo — Gantt completo</div>
+                <div style="display:flex;gap:12px;font-size:11px;font-weight:600;color:#6C757D">
+                  <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#28A745"></span>Concluída</span>
+                  <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#2E60AD"></span>Andamento</span>
+                  <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#FCB316"></span>Atenção</span>
+                  <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#DC3545"></span>Atrasada</span>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:240px 1fr;font-size:10.5px;font-weight:700;color:#6C757D;border-bottom:1px solid #EEF2F8;padding-bottom:6px;margin-top:8px">
+                <div></div>
+                <div style="display:grid;grid-template-columns:repeat(6,1fr);text-align:center"><div>JAN</div><div>FEV</div><div>MAR</div><div>ABR</div><div>MAI</div><div>JUN</div></div>
+              </div>
+              <div style="position:relative">
+                <div style="position:absolute;top:0;bottom:0;left:calc(240px + (100% - 240px) * 0.783);width:2px;background:#DC3545;z-index:2"><span style="position:absolute;top:-1px;left:-15px;font-size:9px;font-weight:700;color:#DC3545;background:#fff;padding:0 3px">HOJE</span></div>
+                <sc-for list="{{ gantt }}" as="row" hint-placeholder-count="8">
+                  <div style="display:grid;grid-template-columns:240px 1fr;align-items:center;padding:8px 0;border-bottom:1px solid #F4F7FB">
+                    <div style="padding-right:12px;min-width:0;display:flex;align-items:center;gap:8px">
+                      <span style="width:8px;height:8px;border-radius:50%;flex:none;background: {{ row.color }}"></span>
+                      <div style="min-width:0"><div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ row.nome }}</div><div style="font-size:10px;color:#6C757D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ row.lic }} · vence {{ row.prazo }}</div></div>
+                    </div>
+                    <div style="position:relative;height:22px;background:#F4F7FB;border-radius:6px">
+                      <div style="position:absolute;top:3px;bottom:3px;border-radius:5px;left: {{ row.leftPct }}%;width: {{ row.widthPct }}%;background: {{ row.color }}"></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ dashC }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:340px 1fr;gap:16px">
+              <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;padding:18px;box-shadow:0 1px 2px rgba(20,42,75,.04)">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div style="font-size:13px;font-weight:800">Maio 2025</div><div style="font-size:11px;color:#6C757D;font-weight:600">Calendário de obrigações</div></div>
+                <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:10px;font-weight:700;color:#6C757D;text-align:center;margin-bottom:6px"><div>D</div><div>S</div><div>T</div><div>Q</div><div>Q</div><div>S</div><div>S</div></div>
+                <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:11.5px;font-weight:600">
+                  <div style="color:#C7D2E2;padding:6px 0">27</div><div style="color:#C7D2E2;padding:6px 0">28</div><div style="color:#C7D2E2;padding:6px 0">29</div><div style="color:#C7D2E2;padding:6px 0">30</div><div style="padding:6px 0">1</div><div style="padding:6px 0">2</div><div style="padding:6px 0">3</div>
+                  <div style="padding:6px 0">4</div><div style="padding:6px 0">5</div><div style="padding:6px 0">6</div><div style="padding:6px 0;background:#FCB316;color:#fff;border-radius:7px;font-weight:800">7</div><div style="padding:6px 0">8</div><div style="padding:6px 0">9</div><div style="padding:6px 0">10</div>
+                  <div style="padding:6px 0">11</div><div style="padding:6px 0">12</div><div style="padding:6px 0;background:#2E60AD;color:#fff;border-radius:7px;font-weight:800">13</div><div style="padding:6px 0">14</div><div style="padding:6px 0">15</div><div style="padding:6px 0">16</div><div style="padding:6px 0">17</div>
+                  <div style="padding:6px 0">18</div><div style="padding:6px 0">19</div><div style="padding:6px 0">20</div><div style="padding:6px 0;background:#DC3545;color:#fff;border-radius:7px;font-weight:800">21</div><div style="padding:6px 0;background:#FCB316;color:#fff;border-radius:7px;font-weight:800">22</div><div style="padding:6px 0">23</div><div style="padding:6px 0">24</div>
+                  <div style="padding:6px 0">25</div><div style="padding:6px 0">26</div><div style="padding:6px 0">27</div><div style="padding:6px 0">28</div><div style="padding:6px 0">29</div><div style="padding:6px 0">30</div><div style="padding:6px 0">31</div>
+                </div>
+                <div style="display:flex;gap:14px;margin-top:14px;padding-top:14px;border-top:1px solid #EEF2F8;font-size:11px;font-weight:600;color:#6C757D">
+                  <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:50%;background:#DC3545"></span>Vencimento</span>
+                  <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:50%;background:#FCB316"></span>Prazo curto</span>
+                  <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:50%;background:#2E60AD"></span>Protocolo</span>
+                </div>
+              </div>
+              <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;padding:18px;box-shadow:0 1px 2px rgba(20,42,75,.04)">
+                <div style="font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6C757D;margin-bottom:12px">Próximas obrigações</div>
+                <sc-for list="{{ gantt }}" as="row" hint-placeholder-count="8">
+                  <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #F4F7FB">
+                    <span style="width:6px;height:34px;border-radius:3px;flex:none;background: {{ row.color }}"></span>
+                    <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ row.nome }}</div><div style="font-size:11px;color:#6C757D">{{ row.resp }} · {{ row.per }}</div></div>
+                    <div style="text-align:right;flex:none"><div style="font-family:'Spline Sans Mono';font-size:12px;font-weight:700">{{ row.prazo }}</div><div style="font-size:10.5px;font-weight:700;color: {{ row.color }}">{{ row.statusLabel }}</div></div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isLicencas }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid;grid-template-columns:1fr 380px;gap:16px">
+          <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;box-shadow:0 1px 2px rgba(20,42,75,.04);overflow:hidden">
+            <div style="padding:16px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #EEF2F8">
+              <div style="font-size:13px;font-weight:800">Licenças ambientais</div>
+              <div style="display:flex;gap:7px">
+                <span style="font-size:11px;font-weight:700;color:#2E60AD;background:#EAF0FA;border-radius:7px;padding:5px 10px">Todas · 5</span>
+                <span style="font-size:11px;font-weight:700;color:#DC3545;background:#FDEAEC;border-radius:7px;padding:5px 10px">Críticas · 1</span>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:64px 1fr 90px 110px;gap:0;padding:9px 18px;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6C757D;border-bottom:1px solid #EEF2F8">
+              <div>Tipo</div><div>Licença / órgão</div><div>Validade</div><div style="text-align:right">Status</div>
+            </div>
+            <sc-for list="{{ licencas }}" as="lic" hint-placeholder-count="5">
+              <div style="display:grid;grid-template-columns:64px 1fr 90px 110px;gap:0;align-items:center;padding:13px 18px;border-bottom:1px solid #F4F7FB;cursor:pointer">
+                <div><span style="display:inline-flex;align-items:center;justify-content:center;width:42px;height:30px;border-radius:8px;background:#EEF2F8;color:#2E60AD;font-weight:800;font-size:12px;font-family:'Spline Sans Mono'">{{ lic.sigla }}</span></div>
+                <div style="min-width:0"><div style="font-size:13px;font-weight:700;font-family:'Spline Sans Mono'">{{ lic.id }}</div><div style="font-size:11.5px;color:#6C757D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ lic.tipo }} · {{ lic.orgao }}</div></div>
+                <div style="font-size:12px;font-weight:600;font-family:'Spline Sans Mono'">{{ lic.validade }}</div>
+                <div style="text-align:right"><span style="font-size:11px;font-weight:800;padding:4px 10px;border-radius:7px;color:#fff;background: {{ lic.color }}">{{ lic.badge }}</span></div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;box-shadow:0 1px 2px rgba(20,42,75,.04);overflow:hidden;align-self:start">
+            <div style="padding:18px;background:linear-gradient(135deg,#2E60AD,#1A3D74);color:#fff">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,.72)">Detalhe da licença</div>
+              <div style="font-size:19px;font-weight:800;margin-top:5px;font-family:'Spline Sans Mono'">LIC-2023-045</div>
+              <div style="font-size:12.5px;color:rgba(255,255,255,.85);font-weight:500">Licença de Operação · CPRH</div>
+              <div style="display:inline-flex;align-items:center;gap:6px;margin-top:12px;background:rgba(220,53,69,.92);border-radius:8px;padding:6px 11px;font-size:12px;font-weight:800">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5M12 16h.01" stroke-linecap="round"></path></svg>
+                Vence em 7 dias — 07/06/2025
+              </div>
+            </div>
+            <div style="padding:16px 18px">
+              <div style="font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6C757D;margin-bottom:10px">Condicionantes vinculadas</div>
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <div style="display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid #EEF2F8;border-radius:10px">
+                  <span style="width:8px;height:8px;border-radius:50%;margin-top:5px;flex:none;background:#2E60AD"></span>
+                  <div style="flex:1"><div style="font-size:12.5px;font-weight:700">Monitoramento de efluentes</div><div style="font-size:11px;color:#6C757D">Mensal · próx. 05/06 · 62% concluído</div></div>
+                </div>
+                <div style="display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid #FDD9DD;border-radius:10px;background:#FFF8F8">
+                  <span style="width:8px;height:8px;border-radius:50%;margin-top:5px;flex:none;background:#DC3545"></span>
+                  <div style="flex:1"><div style="font-size:12.5px;font-weight:700">Renovação da LO (protocolo)</div><div style="font-size:11px;color:#DC3545;font-weight:600">Prazo legal: 120 dias antes · ATRASO de protocolo</div></div>
+                </div>
+                <div style="display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid #EEF2F8;border-radius:10px">
+                  <span style="width:8px;height:8px;border-radius:50%;margin-top:5px;flex:none;background:#FCB316"></span>
+                  <div style="flex:1"><div style="font-size:12.5px;font-weight:700">Monitoramento de ruído</div><div style="font-size:11px;color:#6C757D">Semestral · próx. 15/06 · 15%</div></div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:14px">
+                <div style="flex:1;text-align:center;background:#2E60AD;color:#fff;font-size:12px;font-weight:700;padding:10px;border-radius:9px;cursor:pointer">Ver evidências</div>
+                <div style="flex:1;text-align:center;background:#EEF2F8;color:#2E60AD;font-size:12px;font-weight:700;padding:10px;border-radius:9px;cursor:pointer">Histórico</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isPrazos }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px">
+            <div style="background:#fff;border:1px solid #FDD9DD;border-radius:14px;padding:16px;display:flex;gap:12px;align-items:center">
+              <span style="width:42px;height:42px;border-radius:11px;background:#FDEAEC;color:#DC3545;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;flex:none">3</span>
+              <div><div style="font-size:13px;font-weight:800;color:#DC3545">Críticos (&lt; 7 dias)</div><div style="font-size:11.5px;color:#6C757D;font-weight:600">ação imediata necessária</div></div>
+            </div>
+            <div style="background:#fff;border:1px solid #FCE0A8;border-radius:14px;padding:16px;display:flex;gap:12px;align-items:center">
+              <span style="width:42px;height:42px;border-radius:11px;background:#FEF4DD;color:#B8780A;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;flex:none">5</span>
+              <div><div style="font-size:13px;font-weight:800;color:#B8780A">Atenção (&lt; 15 dias)</div><div style="font-size:11.5px;color:#6C757D;font-weight:600">monitorar de perto</div></div>
+            </div>
+            <div style="background:#fff;border:1px solid #B6E3C2;border-radius:14px;padding:16px;display:flex;gap:12px;align-items:center">
+              <span style="width:42px;height:42px;border-radius:11px;background:#E6F6EB;color:#1E7A34;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;flex:none">15</span>
+              <div><div style="font-size:13px;font-weight:800;color:#1E7A34">No prazo (&gt; 30 dias)</div><div style="font-size:11.5px;color:#6C757D;font-weight:600">sob controle</div></div>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;padding:18px;box-shadow:0 1px 2px rgba(20,42,75,.04)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <div style="font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6C757D">Cronograma semestral — Gantt de obrigações</div>
+              <div style="display:flex;gap:12px;font-size:11px;font-weight:600;color:#6C757D">
+                <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#28A745"></span>Concluída</span>
+                <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#2E60AD"></span>Andamento</span>
+                <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#FCB316"></span>Atenção</span>
+                <span style="display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:#DC3545"></span>Atrasada</span>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:240px 1fr;font-size:10.5px;font-weight:700;color:#6C757D;border-bottom:1px solid #EEF2F8;padding-bottom:6px;margin-top:8px">
+              <div></div>
+              <div style="display:grid;grid-template-columns:repeat(6,1fr);text-align:center"><div>JAN</div><div>FEV</div><div>MAR</div><div>ABR</div><div>MAI</div><div>JUN</div></div>
+            </div>
+            <div style="position:relative">
+              <div style="position:absolute;top:0;bottom:0;left:calc(240px + (100% - 240px) * 0.783);width:2px;background:#DC3545;z-index:2"><span style="position:absolute;top:-1px;left:-15px;font-size:9px;font-weight:700;color:#DC3545;background:#fff;padding:0 3px">HOJE</span></div>
+              <sc-for list="{{ gantt }}" as="row" hint-placeholder-count="8">
+                <div style="display:grid;grid-template-columns:240px 1fr;align-items:center;padding:9px 0;border-bottom:1px solid #F4F7FB">
+                  <div style="padding-right:12px;min-width:0;display:flex;align-items:center;gap:9px">
+                    <span style="width:9px;height:9px;border-radius:50%;flex:none;background: {{ row.color }}"></span>
+                    <div style="min-width:0"><div style="font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ row.nome }}</div><div style="font-size:10.5px;color:#6C757D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ row.resp }} · {{ row.per }}</div></div>
+                  </div>
+                  <div style="position:relative;height:24px;background:#F4F7FB;border-radius:6px">
+                    <div style="position:absolute;top:3px;bottom:3px;border-radius:5px;left: {{ row.leftPct }}%;width: {{ row.widthPct }}%;background: {{ row.color }};display:flex;align-items:center;padding:0 8px">
+                      <span style="font-size:9.5px;font-weight:700;color:#fff;white-space:nowrap">{{ row.prazo }}</span>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isEvidencias }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div style="display:flex;gap:7px">
+              <span style="font-size:11.5px;font-weight:700;color:#fff;background:#2E60AD;border-radius:8px;padding:7px 13px">Todas · 842</span>
+              <span style="font-size:11.5px;font-weight:700;color:#6C757D;background:#fff;border:1px solid #E2E8F2;border-radius:8px;padding:7px 13px">Protocoladas · 814</span>
+              <span style="font-size:11.5px;font-weight:700;color:#B8780A;background:#FEF4DD;border-radius:8px;padding:7px 13px">Pendentes · 28</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;background:#2E60AD;color:#fff;font-size:12.5px;font-weight:700;padding:9px 15px;border-radius:9px;cursor:pointer">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round"></path></svg>Nova evidência</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+            <sc-for list="{{ evidencias }}" as="ev" hint-placeholder-count="6">
+              <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(20,42,75,.04)">
+                <div style="height:96px;background:linear-gradient(135deg,#EAF0FA,#DCE6F5);display:flex;align-items:center;justify-content:center;position:relative">
+                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#2E60AD" stroke-width="1.6"><path d="M6 3h8l4 4v14H6z" stroke-linejoin="round"></path><path d="M14 3v4h4" stroke-linejoin="round"></path></svg>
+                  <sc-if value="{{ ev.ok }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;top:9px;right:9px;display:inline-flex;align-items:center;gap:4px;background:#28A745;color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:7px">PROTOCOLADA</span></sc-if>
+                  <sc-if value="{{ ev.pend }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:9px;right:9px;display:inline-flex;align-items:center;gap:4px;background:#FCB316;color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:7px">PENDENTE</span></sc-if>
+                </div>
+                <div style="padding:13px 15px">
+                  <div style="font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#2E60AD">{{ ev.tipo }}</div>
+                  <div style="font-size:13.5px;font-weight:700;margin-top:3px">{{ ev.nome }}</div>
+                  <div style="font-size:11.5px;color:#6C757D;margin-top:7px;display:flex;align-items:center;gap:6px">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6C757D" stroke-width="2"><path d="M9 7l6 5-6 5"></path></svg>{{ ev.vinc }}
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid #F4F7FB">
+                    <span style="font-size:11px;color:#6C757D;font-weight:600">{{ ev.resp }}</span>
+                    <span style="font-size:10.5px;font-family:'Spline Sans Mono';color:#1B2A4A;font-weight:600">{{ ev.proto }}</span>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isStakeholders }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px">
+            <sc-for list="{{ stakeholders }}" as="g" hint-placeholder-count="4">
+              <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;padding:16px;box-shadow:0 1px 2px rgba(20,42,75,.04);border-top:3px solid {{ g.cor }}">
+                <div style="font-size:12px;font-weight:800;margin-bottom:11px;color: {{ g.cor }}">{{ g.grupo }}</div>
+                <sc-for list="{{ g.itens }}" as="it" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid #F4F7FB">
+                    <span style="width:26px;height:26px;border-radius:7px;background:#EEF2F8;color:#2E60AD;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex:none">{{ it.ini }}</span>
+                    <span style="font-size:12px;font-weight:600">{{ it.nome }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+          <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;box-shadow:0 1px 2px rgba(20,42,75,.04);overflow:hidden">
+            <div style="padding:16px 18px;font-size:13px;font-weight:800;border-bottom:1px solid #EEF2F8">Matriz de responsabilidade por obrigação</div>
+            <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr .8fr .9fr;padding:9px 18px;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6C757D;border-bottom:1px solid #EEF2F8">
+              <div>Obrigação</div><div>Responsável</div><div>Apoio</div><div>Órgão</div><div style="text-align:right">Status</div>
+            </div>
+            <sc-for list="{{ respTable }}" as="r" hint-placeholder-count="5">
+              <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr .8fr .9fr;align-items:center;padding:12px 18px;border-bottom:1px solid #F4F7FB">
+                <div style="font-size:12.5px;font-weight:700">{{ r.obr }}</div>
+                <div style="font-size:12px;color:#1B2A4A;font-weight:600">{{ r.resp }}</div>
+                <div style="font-size:12px;color:#6C757D">{{ r.apoio }}</div>
+                <div style="font-size:11.5px;font-weight:700;color:#2E60AD;font-family:'Spline Sans Mono'">{{ r.orgao }}</div>
+                <div style="text-align:right"><span style="font-size:11px;font-weight:800;padding:4px 10px;border-radius:7px;color:#fff;background: {{ r.color }}">{{ r.statusLabel }}</span></div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isDemandas }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px">
+            <div style="background:#fff;border:1px solid #FDD9DD;border-radius:14px;padding:16px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#DC3545">Urgentes</div><div style="font-size:28px;font-weight:800;margin-top:4px">1</div></div>
+            <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;padding:16px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#6C757D">Em andamento</div><div style="font-size:28px;font-weight:800;margin-top:4px">3</div></div>
+            <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;padding:16px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#6C757D">SLA médio</div><div style="font-size:28px;font-weight:800;margin-top:4px">4,2<span style="font-size:14px;color:#6C757D">d</span></div></div>
+            <div style="background:#fff;border:1px solid #B6E3C2;border-radius:14px;padding:16px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#1E7A34">No prazo</div><div style="font-size:28px;font-weight:800;margin-top:4px;color:#28A745">96%</div></div>
+          </div>
+          <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;box-shadow:0 1px 2px rgba(20,42,75,.04);overflow:hidden">
+            <div style="padding:16px 18px;font-size:13px;font-weight:800;border-bottom:1px solid #EEF2F8;display:flex;align-items:center;gap:8px">Respostas sob pressão <span style="font-size:11px;font-weight:600;color:#6C757D">— demandas de órgãos com prazo legal</span></div>
+            <div style="display:grid;grid-template-columns:90px 1fr 110px 120px 90px;padding:9px 18px;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6C757D;border-bottom:1px solid #EEF2F8">
+              <div>Órgão</div><div>Assunto</div><div>Prioridade</div><div>Status</div><div style="text-align:right">Prazo</div>
+            </div>
+            <sc-for list="{{ demandas }}" as="d" hint-placeholder-count="5">
+              <div style="display:grid;grid-template-columns:90px 1fr 110px 120px 90px;align-items:center;padding:13px 18px;border-bottom:1px solid #F4F7FB">
+                <div style="font-size:12px;font-weight:800;color:#2E60AD;font-family:'Spline Sans Mono'">{{ d.orgao }}</div>
+                <div style="min-width:0"><div style="font-size:12.5px;font-weight:700">{{ d.assunto }}</div><div style="font-size:11px;color:#6C757D">{{ d.tipo }}</div></div>
+                <div><span style="font-size:10px;font-weight:800;padding:3px 9px;border-radius:6px;color:#fff;background: {{ d.pc }}">{{ d.prio }}</span></div>
+                <div><span style="font-size:11px;font-weight:700;color: {{ d.sc }}">{{ d.status }}</span></div>
+                <div style="text-align:right;font-size:12px;font-weight:800;font-family:'Spline Sans Mono'">{{ d.prazo }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isIA }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+          <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;padding:18px;box-shadow:0 1px 2px rgba(20,42,75,.04)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <div style="font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E60AD" stroke-width="1.8"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3Z" stroke-linejoin="round"></path></svg>
+                Texto da licença
+              </div>
+              <span onclick="{{ loadSample }}" style="font-size:11.5px;font-weight:700;color:#2E60AD;background:#EAF0FA;border-radius:8px;padding:6px 11px;cursor:pointer">Carregar exemplo</span>
+            </div>
+            <textarea value="{{ aiInput }}" onchange="{{ onAi }}" placeholder="Cole aqui o texto integral da licença ou condicionantes…" style="width:100%;height:340px;resize:none;border:1px solid #E2E8F2;border-radius:11px;padding:13px;font-size:12.5px;line-height:1.55;font-family:'Spline Sans Mono';color:#1B2A4A;background:#FBFCFE;outline:none"></textarea>
+            <div onclick="{{ runAI }}" style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:9px;background:linear-gradient(135deg,#2E60AD,#1A3D74);color:#fff;font-size:13.5px;font-weight:800;padding:13px;border-radius:11px;cursor:pointer">
+                <sc-if value="{{ aiLoading }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:gmlspin .7s linear infinite"></span> Analisando…</sc-if>
+                <sc-if value="{{ aiIdle }}" hint-placeholder-val="{{ true }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg> Extrair condicionantes com IA</sc-if>
+            </div>
+            <sc-if value="{{ aiHasError }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:10px;font-size:12px;font-weight:600;color:#DC3545;background:#FDEAEC;border-radius:9px;padding:10px 12px">{{ aiError }}</div>
+            </sc-if>
+          </div>
+
+          <div style="background:#fff;border:1px solid #E2E8F2;border-radius:14px;padding:18px;box-shadow:0 1px 2px rgba(20,42,75,.04);min-height:430px">
+            <div style="font-size:13px;font-weight:800;margin-bottom:12px">Extração estruturada</div>
+            <sc-if value="{{ aiEmpty }}" hint-placeholder-val="{{ true }}">
+              <div style="height:360px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#9AA8BE">
+                <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#C7D2E2" stroke-width="1.4"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3Z" stroke-linejoin="round"></path><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8L18 15Z" stroke-linejoin="round"></path></svg>
+                <div style="font-size:13px;font-weight:700;margin-top:14px;color:#6C757D">A IA estrutura licença e condicionantes</div>
+                <div style="font-size:12px;margin-top:5px;max-width:280px">Cole o texto e clique em extrair. O LLM identifica órgão, validade, risco e cada condicionante com periodicidade.</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ hasAi }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px;border-radius:12px;background:linear-gradient(135deg,#EAF0FA,#F4F8FE);border:1px solid #DCE6F5">
+                  <div style="min-width:0">
+                    <div style="font-size:16px;font-weight:800;font-family:'Spline Sans Mono'">{{ aiResult.numero }}</div>
+                    <div style="font-size:12px;color:#1B2A4A;font-weight:600;margin-top:2px">{{ aiResult.tipo }} · {{ aiResult.orgao }}</div>
+                    <div style="font-size:11.5px;color:#6C757D;margin-top:2px">Validade: {{ aiResult.validade }}</div>
+                  </div>
+                  <span style="flex:none;font-size:11px;font-weight:800;color:#fff;padding:6px 12px;border-radius:8px;background: {{ aiRiskColor }}">Risco {{ aiResult.classificacao_risco }}</span>
+                </div>
+                <div style="font-size:12.5px;color:#3A4A66;font-weight:500;line-height:1.5;margin:12px 2px;font-style:italic">{{ aiResult.resumo }}</div>
+                <div style="font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6C757D;margin:6px 0 8px">Condicionantes ({{ aiCondCount }})</div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <sc-for list="{{ aiCond }}" as="c" hint-placeholder-count="3">
+                    <div style="border:1px solid #EEF2F8;border-radius:10px;padding:11px 12px;border-left:3px solid {{ c.riscoColor }}">
+                      <div style="font-size:12.5px;font-weight:600;line-height:1.45">{{ c.descricao }}</div>
+                      <div style="display:flex;gap:14px;margin-top:7px;font-size:11px;font-weight:600;color:#6C757D">
+                        <span style="display:flex;align-items:center;gap:4px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6C757D" stroke-width="2"><path d="M12 6v6l4 2"></path><circle cx="12" cy="12" r="9"></circle></svg>{{ c.periodicidade }}</span>
+                        <span style="display:flex;align-items:center;gap:4px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6C757D" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 9h18"></path></svg>{{ c.prazo }}</span>
+                        <span style="margin-left:auto;color: {{ c.riscoColor }};font-weight:800">{{ c.risco }}</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:14px">
+                  <div style="flex:1;text-align:center;background:#28A745;color:#fff;font-size:12px;font-weight:700;padding:10px;border-radius:9px;cursor:pointer">Importar para o sistema</div>
+                  <div style="flex:1;text-align:center;background:#EEF2F8;color:#2E60AD;font-size:12px;font-weight:700;padding:10px;border-radius:9px;cursor:pointer">Exportar JSON</div>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap;justify-content:center;padding-top:8px">
+
+          <div style="width:300px;height:620px;border-radius:38px;background:#1A3D74;padding:11px;box-shadow:0 18px 50px rgba(20,42,75,.3);flex:none">
+            <div style="width:100%;height:100%;border-radius:30px;background:#EEF2F8;overflow:hidden;position:relative;display:flex;flex-direction:column">
+              <div style="background:linear-gradient(135deg,#2E60AD,#1A3D74);color:#fff;padding:14px 18px 16px">
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:600;opacity:.85"><span>9:41</span><span>Campo · Suape</span></div>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:14px">
+                  <div style="width:32px;height:32px;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 19c0-7 5-12 14-13-1 9-6 13-13 13Z" fill="#28A745"></path></svg></div>
+                  <div><div style="font-size:14px;font-weight:800">GML Campo</div><div style="font-size:10px;opacity:.8">Olá, João — 3 tarefas hoje</div></div>
+                </div>
+              </div>
+              <div style="flex:1;overflow-y:auto;padding:14px">
+                <div style="background:#fff;border-radius:13px;padding:13px;box-shadow:0 1px 3px rgba(20,42,75,.06);border-left:3px solid #DC3545;margin-bottom:11px">
+                  <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:10px;font-weight:800;color:#DC3545;text-transform:uppercase">Hoje · crítico</span><span style="font-size:10px;font-weight:700;color:#6C757D">07:00</span></div>
+                  <div style="font-size:13px;font-weight:700;margin-top:6px">Coleta de efluentes — Ponto R1</div>
+                  <div style="font-size:11px;color:#6C757D;margin-top:3px">LIC-2023-045 · Mensal</div>
+                  <div style="display:flex;gap:7px;margin-top:11px">
+                    <div style="flex:1;text-align:center;background:#2E60AD;color:#fff;font-size:11.5px;font-weight:700;padding:8px;border-radius:8px">Registrar</div>
+                    <div style="width:38px;text-align:center;background:#EEF2F8;color:#2E60AD;padding:8px;border-radius:8px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg></div>
+                  </div>
+                </div>
+                <div style="background:#fff;border-radius:13px;padding:13px;box-shadow:0 1px 3px rgba(20,42,75,.06);border-left:3px solid #FCB316;margin-bottom:11px">
+                  <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:10px;font-weight:800;color:#B8780A;text-transform:uppercase">Hoje · atenção</span><span style="font-size:10px;font-weight:700;color:#6C757D">11:00</span></div>
+                  <div style="font-size:13px;font-weight:700;margin-top:6px">Medição de ruído — Limite Norte</div>
+                  <div style="font-size:11px;color:#6C757D;margin-top:3px">LIC-2023-045 · Semestral</div>
+                </div>
+                <div style="background:#fff;border-radius:13px;padding:13px;box-shadow:0 1px 3px rgba(20,42,75,.06);border-left:3px solid #28A745">
+                  <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:10px;font-weight:800;color:#1E7A34;text-transform:uppercase">Concluído</span><span style="font-size:10px;font-weight:700;color:#6C757D">06:30</span></div>
+                  <div style="font-size:13px;font-weight:700;margin-top:6px">Inspeção de fauna — Trilha 2</div>
+                  <div style="font-size:11px;color:#28A745;font-weight:600;margin-top:3px">Evidência protocolada ✓</div>
+                </div>
+              </div>
+              <div style="display:flex;background:#fff;border-top:1px solid #E2E8F2;padding:9px 0">
+                <div style="flex:1;text-align:center;color:#2E60AD"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:inline"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg></div>
+                <div style="flex:1;text-align:center;color:#B5C0D2"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:inline"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 9h18M8 3v4M16 3v4"></path></svg></div>
+                <div style="flex:1;text-align:center"><span style="display:inline-flex;width:42px;height:42px;margin-top:-18px;border-radius:50%;background:#FCB316;color:#fff;align-items:center;justify-content:center;box-shadow:0 6px 14px rgba(252,179,22,.45)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M12 5v14M5 12h14" stroke-linecap="round"></path></svg></span></div>
+                <div style="flex:1;text-align:center;color:#B5C0D2"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:inline"><rect x="3" y="6" width="18" height="14" rx="2"></rect><circle cx="12" cy="13" r="3.2"></circle></svg></div>
+                <div style="flex:1;text-align:center;color:#B5C0D2"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:inline"><circle cx="12" cy="8" r="3.4"></circle><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"></path></svg></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="width:300px;height:620px;border-radius:38px;background:#1A3D74;padding:11px;box-shadow:0 18px 50px rgba(20,42,75,.3);flex:none">
+            <div style="width:100%;height:100%;border-radius:30px;background:#EEF2F8;overflow:hidden;position:relative;display:flex;flex-direction:column">
+              <div style="background:#fff;border-bottom:1px solid #E2E8F2;padding:14px 18px;display:flex;align-items:center;gap:10px">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E60AD" stroke-width="2"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                <div style="font-size:14px;font-weight:800">Registrar evidência</div>
+              </div>
+              <div style="flex:1;overflow-y:auto;padding:16px">
+                <div style="height:150px;border-radius:13px;background:linear-gradient(135deg,#2E60AD,#1A3D74);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;margin-bottom:14px">
+                  <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><rect x="3" y="6" width="18" height="14" rx="2"></rect><circle cx="12" cy="13" r="3.4"></circle><path d="M8 6l1.5-2h5L16 6"></path></svg>
+                  <div style="font-size:12px;font-weight:700;margin-top:9px">Tocar para capturar foto</div>
+                </div>
+                <div style="background:#fff;border-radius:11px;padding:11px 13px;margin-bottom:10px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#6C757D">Obrigação vinculada</div><div style="font-size:12.5px;font-weight:700;margin-top:3px">Monitoramento de efluentes</div></div>
+                <div style="display:flex;gap:10px;margin-bottom:10px">
+                  <div style="flex:1;background:#fff;border-radius:11px;padding:11px 13px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#6C757D">GPS</div><div style="font-size:11.5px;font-weight:700;font-family:'Spline Sans Mono';margin-top:3px;color:#28A745">−8.39, −34.96 ✓</div></div>
+                  <div style="flex:1;background:#fff;border-radius:11px;padding:11px 13px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#6C757D">Data/hora</div><div style="font-size:11.5px;font-weight:700;font-family:'Spline Sans Mono';margin-top:3px">12/05 09:41</div></div>
+                </div>
+                <div style="background:#fff;border-radius:11px;padding:11px 13px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#6C757D">Observações</div><div style="font-size:12px;color:#9AA8BE;margin-top:5px">Coleta dentro dos parâmetros. pH 7,2…</div></div>
+              </div>
+              <div style="padding:14px 16px;background:#fff;border-top:1px solid #E2E8F2">
+                <div style="text-align:center;background:#28A745;color:#fff;font-size:13.5px;font-weight:800;padding:13px;border-radius:11px">Salvar e protocolar</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex:1;min-width:240px;max-width:340px;background:#fff;border:1px solid #E2E8F2;border-radius:14px;padding:18px;box-shadow:0 1px 2px rgba(20,42,75,.04)">
+            <div style="font-size:13px;font-weight:800;margin-bottom:6px">App de campo georreferenciado</div>
+            <div style="font-size:12.5px;color:#6C757D;line-height:1.55">Técnicos registram evidências em campo com <b>GPS, data/hora e foto</b> automáticos, vinculados à condicionante. Sincroniza com o portal e protocola direto no fluxo de evidências — funciona offline e sobe ao reconectar.</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">
+              <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600"><span style="width:30px;height:30px;border-radius:8px;background:#E6F6EB;color:#1E7A34;display:flex;align-items:center;justify-content:center;flex:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>Geolocalização automática</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600"><span style="width:30px;height:30px;border-radius:8px;background:#EAF0FA;color:#2E60AD;display:flex;align-items:center;justify-content:center;flex:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.2-8.5" stroke-linecap="round"></path></svg></span>Sincronização offline</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600"><span style="width:30px;height:30px;border-radius:8px;background:#FEF4DD;color:#B8780A;display:flex;align-items:center;justify-content:center;flex:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h8l4 4v14H6z" stroke-linejoin="round"></path></svg></span>Protocolo no fluxo</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </main>
+  </section>
+</div>
+</x-dc>
+
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:820}}">
+class Component extends DCLogic {
+  state = { screen:'dashboard', dash:'A', aiInput:'', aiResult:null, aiLoading:false, aiError:'' };
+
+  stColor(st){ return ({concluida:'#28A745', andamento:'#2E60AD', atencao:'#FCB316', atrasada:'#DC3545', critica:'#DC3545'})[st] || '#6C757D'; }
+  stLabel(st){ return ({concluida:'Concluída', andamento:'Em andamento', atencao:'Atenção', atrasada:'Atrasada', critica:'Crítica'})[st] || st; }
+
+  obrigacoes(){ return [
+    {nome:'Monitoramento de efluentes', lic:'LIC-2023-045', resp:'Equipe Meio Ambiente', per:'Mensal', prazo:'05/06/2025', s:0.2,e:5.6, st:'andamento', prog:0.62},
+    {nome:'Relatório de fauna', lic:'LI-2023-090', resp:'Contratada Bioterra', per:'Trimestral', prazo:'20/03/2025', s:1.0,e:2.4, st:'concluida', prog:1},
+    {nome:'Renovação da LO (protocolo)', lic:'LIC-2023-045', resp:'Jurídico', per:'Única', prazo:'07/06/2025', s:3.2,e:5.0, st:'critica', prog:0.30},
+    {nome:'Programa de educação ambiental', lic:'LI-2023-090', resp:'Equipe Social', per:'Contínua', prazo:'30/06/2025', s:0.5,e:6.0, st:'andamento', prog:0.5},
+    {nome:'Compensação ambiental', lic:'AO-2024-031', resp:'Financeiro', per:'Única', prazo:'10/05/2025', s:2.0,e:4.6, st:'atrasada', prog:0.4},
+    {nome:'Outorga de água (renovação)', lic:'LOA-2022-007', resp:'Jurídico', per:'Única', prazo:'22/06/2025', s:3.8,e:5.4, st:'andamento', prog:0.2},
+    {nome:'Monitoramento de ruído', lic:'LIC-2023-045', resp:'Contratada Acustec', per:'Semestral', prazo:'15/06/2025', s:4.0,e:5.2, st:'atencao', prog:0.15},
+    {nome:'Plano de gestão de resíduos', lic:'LIC-2023-045', resp:'Equipe Meio Ambiente', per:'Mensal', prazo:'30/04/2025', s:0.0,e:3.0, st:'concluida', prog:1},
+  ]; }
+
+  licencas(){ return [
+    {id:'LIC-2023-045', tipo:'Licença de Operação', sigla:'LO', orgao:'CPRH', validade:'07/06/2025', dias:7, badge:'Crítica', color:'#DC3545'},
+    {id:'LP-2024-118', tipo:'Licença Prévia', sigla:'LP', orgao:'CPRH', validade:'15/06/2025', dias:15, badge:'Atenção', color:'#FCB316'},
+    {id:'LOA-2022-007', tipo:'Outorga de Água', sigla:'LOA', orgao:'APAC', validade:'22/06/2025', dias:22, badge:'Atenção', color:'#FCB316'},
+    {id:'LI-2023-090', tipo:'Licença de Instalação', sigla:'LI', orgao:'IBAMA', validade:'30/09/2025', dias:120, badge:'Válida', color:'#28A745'},
+    {id:'AO-2024-031', tipo:'Autorização de Supressão', sigla:'AO', orgao:'IBAMA', validade:'12/08/2025', dias:78, badge:'Válida', color:'#28A745'},
+  ]; }
+
+  demandas(){ return [
+    {orgao:'CPRH', tipo:'Notificação', assunto:'Esclarecimento sobre efluentes', prio:'URGENTE', pc:'#DC3545', status:'Em análise', sc:'#FCB316', prazo:'3 dias'},
+    {orgao:'IBAMA', tipo:'Requisição de documentos', assunto:'Relatório de fauna 1º tri', prio:'ALTA', pc:'#FCB316', status:'Em andamento', sc:'#2E60AD', prazo:'8 dias'},
+    {orgao:'MPF', tipo:'Requisição', assunto:'Histórico de licenças', prio:'ALTA', pc:'#FCB316', status:'Em validação', sc:'#2E60AD', prazo:'12 dias'},
+    {orgao:'APAC', tipo:'Solicitação', assunto:'Dados de outorga de água', prio:'MÉDIA', pc:'#2E60AD', status:'Atribuído', sc:'#28A745', prazo:'20 dias'},
+    {orgao:'ANTAQ', tipo:'Esclarecimento', assunto:'Operação portuária', prio:'BAIXA', pc:'#6C757D', status:'Em fila', sc:'#6C757D', prazo:'30 dias'},
+  ]; }
+
+  evidencias(){ return [
+    {tipo:'Foto de campo', nome:'Ponto de coleta — Rio', vinc:'Monitoramento de efluentes', resp:'J. Silva', proto:'2025.000123', ok:true},
+    {tipo:'Relatório técnico', nome:'RT Fauna 1º Trimestre', vinc:'Relatório de fauna', resp:'Bioterra', proto:'2025.000118', ok:true},
+    {tipo:'ART e mapa', nome:'ART-9921 + planta', vinc:'Renovação da LO', resp:'Eng. Costa', proto:'—', ok:false},
+    {tipo:'Laudo', nome:'Laudo de ruído', vinc:'Monitoramento de ruído', resp:'Acustec', proto:'2025.000127', ok:true},
+    {tipo:'Ofício', nome:'Ofício 045/2025', vinc:'Demanda CPRH', resp:'Jurídico', proto:'2025.000130', ok:true},
+    {tipo:'Registro', nome:'Série temporal — água', vinc:'Monitoramento de efluentes', resp:'Lab. Ambiental', proto:'2025.000131', ok:true},
+  ]; }
+
+  stakeholders(){ return [
+    {grupo:'Equipes internas', cor:'#2E60AD', itens:['Meio Ambiente','Operações','Jurídico','Compliance']},
+    {grupo:'Áreas internas', cor:'#143A6B', itens:['Engenharia','Suprimentos','TI / Dados','Financeiro']},
+    {grupo:'Contratadas', cor:'#28A745', itens:['Bioterra (fauna)','Acustec (ruído)','Lab. Ambiental','Construtora Vita']},
+    {grupo:'Órgãos externos', cor:'#FCB316', itens:['CPRH','IBAMA','APAC','MPF / ANTAQ']},
+  ]; }
+
+  respTable(){ return [
+    {obr:'Monitoramento de efluentes', resp:'Equipe Meio Ambiente', apoio:'Lab. Ambiental', orgao:'CPRH', st:'andamento'},
+    {obr:'Relatório de fauna', resp:'Contratada Bioterra', apoio:'Meio Ambiente', orgao:'IBAMA', st:'concluida'},
+    {obr:'Renovação da LO', resp:'Jurídico', apoio:'Compliance', orgao:'CPRH', st:'critica'},
+    {obr:'Compensação ambiental', resp:'Financeiro', apoio:'Jurídico', orgao:'CPRH', st:'atrasada'},
+    {obr:'Outorga de água', resp:'Jurídico', apoio:'Engenharia', orgao:'APAC', st:'andamento'},
+  ]; }
+
+  setScreen(k){ this.setState({screen:k}); }
+  setDash(d){ this.setState({dash:d}); }
+  onAi(e){ this.setState({aiInput:e.target.value}); }
+
+  loadSample(){
+    this.setState({aiInput:
+`LICENÇA DE OPERAÇÃO Nº 045/2023 — CPRH
+Empreendimento: Terminal Portuário GML — Suape/PE
+Validade: 07/06/2025
+Atividade: Operação de terminal de granéis e contêineres
+
+CONDICIONANTES:
+1. Realizar monitoramento mensal da qualidade dos efluentes hídricos, com relatório à CPRH a cada 90 dias.
+2. Apresentar relatório trimestral de monitoramento de fauna e flora na área de influência.
+3. Manter programa contínuo de educação ambiental para colaboradores e comunidade.
+4. Executar a compensação ambiental prevista até 10/05/2025, sob pena de multa.
+5. Realizar monitoramento semestral de ruído nos limites do empreendimento.
+6. Protocolar pedido de renovação da licença com 120 dias de antecedência do vencimento.`,
+      aiResult:null, aiError:''});
+  }
+
+  async runAI(){
+    if(this.state.aiLoading) return;
+    const txt=(this.state.aiInput||'').trim();
+    if(!txt){ this.setState({aiError:'Cole o texto da licença ou carregue o exemplo.'}); return; }
+    this.setState({aiLoading:true, aiError:'', aiResult:null});
+    try{
+      const prompt = 'Você é um analista de gestão ambiental. Leia a licença abaixo e devolva APENAS um JSON válido (sem markdown, sem comentários) com as chaves exatas: numero (string), tipo (string), orgao (string), validade (string), classificacao_risco (um de: "Baixo","Médio","Alto"), resumo (string com 1 frase), condicionantes (array de objetos com chaves: descricao, periodicidade, prazo, risco onde risco é "Baixo","Médio" ou "Alto"). Texto da licença:\n\n' + txt;
+      const out = await window.claude.complete(prompt);
+      let j = String(out).trim();
+      j = j.replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
+      const a=j.indexOf('{'), b=j.lastIndexOf('}');
+      if(a>=0&&b>a) j=j.slice(a,b+1);
+      const data = JSON.parse(j);
+      this.setState({aiResult:data, aiLoading:false});
+    }catch(e){ this.setState({aiError:'Não foi possível interpretar a resposta. Tente novamente.', aiLoading:false}); }
+  }
+
+  riskColor(v){ const s=String(v||''); return /alto/i.test(s)?'#DC3545':/m[eé]d/i.test(s)?'#FCB316':'#28A745'; }
+
+  renderVals(){
+    const s=this.state;
+    const nav=['dashboard','licencas','prazos','evidencias','stakeholders','demandas','ia','mobile'];
+    const navIdx=Math.max(0,nav.indexOf(s.screen));
+    const titles={
+      dashboard:['Dashboard executivo','Visão geral de riscos, prazos e conformidade'],
+      licencas:['Licenças & Condicionantes','Acompanhamento de licenças e obrigações ambientais'],
+      prazos:['Prazos & Alertas','Cronograma de obrigações e alertas críticos'],
+      evidencias:['Evidências & Documentos','Comprovações vinculadas às obrigações'],
+      stakeholders:['Stakeholders & Responsáveis','Matriz de responsabilidade institucional'],
+      demandas:['Central de Demandas','Respostas a órgãos sob pressão'],
+      ia:['Leitura de Licença por IA','Extração automática de condicionantes com LLM'],
+      mobile:['App de Campo','Registro e consulta ambiental em campo'],
+    };
+    const obr=this.obrigacoes().map(o=>({
+      nome:o.nome, lic:o.lic, resp:o.resp, per:o.per, prazo:o.prazo,
+      leftPct:(o.s/6*100).toFixed(2), widthPct:((o.e-o.s)/6*100).toFixed(2),
+      color:this.stColor(o.st), progPct:Math.round(o.prog*100), statusLabel:this.stLabel(o.st),
+    }));
+    const respTable=this.respTable().map(r=>({obr:r.obr, resp:r.resp, apoio:r.apoio, orgao:r.orgao, color:this.stColor(r.st), statusLabel:this.stLabel(r.st)}));
+    const ini=(n)=>n.replace(/[(].*$/,'').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const stakeholders=this.stakeholders().map(g=>({grupo:g.grupo, cor:g.cor, itens:g.itens.map(it=>({nome:it, ini:ini(it)}))}));
+    const evidencias=this.evidencias().map(e=>({tipo:e.tipo, nome:e.nome, vinc:e.vinc, resp:e.resp, proto:e.proto, ok:e.ok, pend:!e.ok}));
+    const aiR=s.aiResult;
+    const aiCond=(aiR&&Array.isArray(aiR.condicionantes))?aiR.condicionantes.map(c=>({descricao:c.descricao||'—', periodicidade:c.periodicidade||'—', prazo:c.prazo||'—', risco:c.risco||'—', riscoColor:this.riskColor(c.risco)})):[];
+    return {
+      screen:s.screen, setScreen:(e)=>this.setScreen(e.currentTarget.dataset.k),
+      navTop:navIdx*48,
+      pageTitle:titles[s.screen][0], pageSub:titles[s.screen][1],
+      isDashboard:s.screen==='dashboard', isLicencas:s.screen==='licencas', isPrazos:s.screen==='prazos',
+      isEvidencias:s.screen==='evidencias', isStakeholders:s.screen==='stakeholders', isDemandas:s.screen==='demandas',
+      isIA:s.screen==='ia', isMobile:s.screen==='mobile',
+      dash:s.dash, setDash:(e)=>this.setDash(e.currentTarget.dataset.d), dashA:s.dash==='A', dashB:s.dash==='B', dashC:s.dash==='C',
+      obr, gantt:obr, respTable,
+      licencas:this.licencas(), demandas:this.demandas(), evidencias, stakeholders,
+      aiInput:s.aiInput, onAi:(e)=>this.onAi(e), runAI:()=>this.runAI(), loadSample:()=>this.loadSample(),
+      aiLoading:s.aiLoading, aiIdle:!s.aiLoading, aiError:s.aiError, aiHasError:!!s.aiError,
+      hasAi:!!aiR, aiEmpty:!aiR, aiResult:aiR||{}, aiCond, aiCondCount:aiCond.length,
+      aiRiskColor:aiR?this.riskColor(aiR.classificacao_risco):'#6C757D',
+    };
+  }
+}
+</script>
+
+
+</body></html>
+
+</body>
+</html>
