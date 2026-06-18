@@ -38,12 +38,27 @@ function ExtractCard({ d, onFill, onExcel }) {
   );
 }
 
+const STORAGE_KEY = 'gml_chat_messages';
+
 let mid = 0;
 const nid = () => ++mid;
 
+// Carrega o histórico salvo (descartando mensagens transitórias de "digitando")
+// e avança o contador de ids para evitar colisões após recarregar a página.
+function loadMessages() {
+  try {
+    const arr = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    if (!Array.isArray(arr)) return [];
+    mid = arr.reduce((max, m) => Math.max(max, m._id || 0), mid);
+    return arr.filter((m) => !m.typing);
+  } catch {
+    return [];
+  }
+}
+
 export default function AssistenteIA() {
   const { upsertFromExtract, setScreen, openModal, toast } = useStore();
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(loadMessages);
   const [attachments, setAttachments] = useState([]);
   const [text, setText] = useState('');
   const fileRef = useRef(null);
@@ -55,6 +70,13 @@ export default function AssistenteIA() {
 
   useEffect(() => {
     if (msgsRef.current) msgsRef.current.scrollTop = msgsRef.current.scrollHeight;
+  }, [messages]);
+
+  // Persiste a conversa para sobreviver à navegação entre telas e ao recarregar a página.
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.filter((m) => !m.typing)));
+    } catch { /* armazenamento indisponível — ignora */ }
   }, [messages]);
 
   const fillCadastro = useCallback((d) => {
@@ -77,8 +99,8 @@ export default function AssistenteIA() {
     } catch (err) {
       popTyping();
       if (err && err.connection) {
-        append({ role: 'bot', html: 'Não consegui falar com o <b>backend de IA</b>. Verifique se ele está rodando (porta 3333) e a URL em <b>⚙ Configurar IA</b>.' });
-        return openModal('aiKey');
+        append({ role: 'bot', html: 'Não consegui falar com o <b>backend de IA</b>. Confirme que ele está rodando na porta <b>3333</b> e tente novamente.' });
+        return;
       }
       append({ role: 'bot', html: `⚠️ A IA não respondeu agora (<code>${(err && err.message) || 'erro'}</code>). Tente novamente em instantes.` });
     }
@@ -106,8 +128,9 @@ export default function AssistenteIA() {
     } catch (err) {
       popTyping();
       if (err && err.connection) {
-        append({ role: 'bot', html: 'Não consegui falar com o <b>backend de IA</b>. Verifique se ele está rodando e a URL em <b>⚙ Configurar IA</b>. Abrindo a configuração…' });
-        return openModal('aiKey');
+        append({ role: 'bot', html: 'Não consegui falar com o <b>backend de IA</b>. Confirme que ele está rodando na porta <b>3333</b>. Segue uma extração <i>simulada</i>:' });
+        append({ extract: buildSampleExtract() });
+        return;
       }
       append({ role: 'bot', html: `⚠️ Não consegui processar o arquivo (<code>${(err && err.message) || 'erro'}</code>). Segue uma extração <i>simulada</i>:` });
       append({ extract: buildSampleExtract() });
@@ -163,12 +186,11 @@ export default function AssistenteIA() {
                 <h3 style={{ color: 'var(--tinta)', fontSize: 17, margin: '0 0 6px' }}>Assistente de Licenças GML</h3>
                 <p style={{ margin: 0 }}>
                   Anexe o <b>PDF</b> ou a <b>imagem</b> de uma licença (botão 📎). A IA lê o documento por <b>OCR/visão</b>, identifica tipo, órgão, processo, validade e condicionantes — e cadastra a licença automaticamente.<br />
-                  <span style={{ fontSize: 11.5 }}>A leitura e o chat usam o <b>backend GML</b> (Gemini). Configure a URL em <b>⚙ Configurar IA</b>.</span>
+                  <span style={{ fontSize: 11.5 }}>A leitura e o chat usam o <b>backend GML</b> (Gemini) — conectado automaticamente.</span>
                 </p>
                 <div className="ai-suggest">
                   <button onClick={() => handleSug('exemplo')}>📄 Ler licença de exemplo (demo)</button>
                   <button onClick={() => fileRef.current.click()}>📎 Anexar PDF/imagem real</button>
-                  <button onClick={() => openModal('aiKey')}>⚙ Configurar chave da API</button>
                 </div>
               </div>
             ) : messages.map((m) => {
