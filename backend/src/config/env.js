@@ -35,7 +35,7 @@ const env = Object.freeze({
 
   gemini: {
     apiKey: process.env.GEMINI_API_KEY || '',
-    model: process.env.GEMINI_MODEL || 'gemini-flash-lite-3.1',
+    model: process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite',
     baseUrl: (process.env.GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta').replace(/\/$/, ''),
     timeoutMs: toInt(process.env.GEMINI_TIMEOUT_MS, 30000),
     maxRetries: toInt(process.env.GEMINI_MAX_RETRIES, 2),
