@@ -3,6 +3,11 @@ dist
 .vite
 *.local
 
+# Variáveis de ambiente locais (chave da API) — não versionar
+.env
+.env.*
+!.env.example
+
 # package.json/lock são ignorados na raiz do repo; aqui eles são essenciais
 !package.json
 !package-lock.json

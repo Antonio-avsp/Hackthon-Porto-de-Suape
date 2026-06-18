@@ -25,13 +25,20 @@ npm run build && npm run preview   # build de produção
 
 ## 🤖 Leitura por IA (OCR/Visão)
 
-Em **⚙ Configurar IA**, informe sua chave da API Anthropic (`sk-ant-…`, salva apenas no
-navegador). Ao anexar um PDF/imagem, o app chama a **API do Claude** (`claude-opus-4-8`) com
-visão/PDF e extração estruturada (JSON). Sem chave, há um **modo demonstração** com extração
-simulada.
+O assistente **funciona sem configuração na interface**. Sem chave, opera em **modo
+demonstração** (extração simulada). Para ativar a **leitura real** de PDFs/imagens via
+**API do Claude** (`claude-opus-4-8`), defina a chave **uma única vez** num `.env`:
+
+```bash
+cp .env.example .env
+# edite .env e cole a chave:  VITE_ANTHROPIC_API_KEY=sk-ant-...
+```
+
+A IA passa a ler documentos reais automaticamente (visão/PDF + extração estruturada em JSON),
+preencher o cadastro e exportar para Excel — sem nenhum passo de configuração na tela.
 
 > ⚠️ A chamada é feita direto do navegador (`anthropic-dangerous-direct-browser-access`),
-> o que expõe a chave. **Em produção, faça a chamada por um backend.**
+> o que expõe a chave no bundle. **Em produção, faça a chamada por um backend.**
 
 ## 🗂️ Estrutura
 

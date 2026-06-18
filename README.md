@@ -35,13 +35,21 @@ npm run dev        # http://localhost:5173
 
 ### 🤖 Leitura por IA (OCR/Visão)
 
-Em **⚙ Configurar IA**, informe sua chave da API Anthropic (`sk-ant-…`, salva apenas no
-navegador). Ao anexar um **PDF ou imagem** de licença, o app chama a **API do Claude**
-(`claude-opus-4-8`) com visão/PDF e extração estruturada (JSON), preenche o cadastro e
-exporta para Excel. Sem chave, opera em **modo demonstração** com extração simulada.
+O assistente funciona **sem nenhuma configuração na interface**. Por padrão, opera em
+**modo demonstração** (extração simulada). Para ativar a **leitura real** de PDFs/imagens
+via **API do Claude** (`claude-opus-4-8`, visão/PDF + extração estruturada em JSON),
+configure a chave **uma única vez**:
 
-> ⚠️ A chamada é feita direto do navegador (com `anthropic-dangerous-direct-browser-access`).
-> Isso expõe a chave — **em produção, faça a chamada por um backend**.
+```bash
+cd gml-react
+cp .env.example .env        # cole sua chave em VITE_ANTHROPIC_API_KEY
+```
+
+Pronto — a IA passa a ler documentos reais automaticamente, preencher o cadastro e exportar
+para Excel, sem precisar configurar nada na tela.
+
+> ⚠️ A chamada é feita direto do navegador (com `anthropic-dangerous-direct-browser-access`),
+> o que expõe a chave no bundle. **Em produção, faça a chamada por um backend.**
 
 ---
 

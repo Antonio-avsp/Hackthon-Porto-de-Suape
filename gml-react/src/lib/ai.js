@@ -3,9 +3,11 @@
 // ⚠️ Em produção, faça a chamada por um backend — a chave no navegador fica exposta.
 import { tipoNome, riskColor } from '../data.js';
 
-const AI_KEY = 'gml_anthropic_key';
-export const getKey = () => localStorage.getItem(AI_KEY) || '';
-export const setKey = (v) => { if (v) localStorage.setItem(AI_KEY, v); else localStorage.removeItem(AI_KEY); };
+// Chave da API lida de variável de ambiente do Vite — configure UMA vez em gml-react/.env:
+//   VITE_ANTHROPIC_API_KEY=sk-ant-...
+// Assim a IA funciona sem nenhuma configuração na interface. Sem chave → modo demonstração.
+export const getKey = () => (import.meta.env.VITE_ANTHROPIC_API_KEY || '').trim();
+export const hasKey = () => !!getKey();
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

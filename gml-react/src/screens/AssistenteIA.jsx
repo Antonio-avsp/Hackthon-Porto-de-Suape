@@ -3,7 +3,7 @@ import { Icon } from '../icons.jsx';
 import { Sigla, Dot } from '../ui.jsx';
 import { tipoCor } from '../data.js';
 import { useStore } from '../store.jsx';
-import { callAnthropicVision, adaptExtract, buildSampleExtract, exportExcel, getKey, sleep } from '../lib/ai.js';
+import { callAnthropicVision, adaptExtract, buildSampleExtract, exportExcel, hasKey, sleep } from '../lib/ai.js';
 
 const HIST = [
   { t: 'Leitura LO-2023-045', s: 'Hoje · extração concluída' },
@@ -41,7 +41,7 @@ let mid = 0;
 const nid = () => ++mid;
 
 export default function AssistenteIA() {
-  const { upsertFromExtract, setScreen, openModal, toast } = useStore();
+  const { upsertFromExtract, setScreen, toast } = useStore();
   const [messages, setMessages] = useState([]);
   const [attachments, setAttachments] = useState([]);
   const [text, setText] = useState('');
@@ -70,17 +70,20 @@ export default function AssistenteIA() {
     append({ role: 'bot', html });
   }
 
-  async function simulateExtraction(filename) {
-    append({ role: 'user', text: 'Leia esta licença de exemplo e cadastre para mim.', file: filename });
+  // Extração de demonstração (sem chave de API) — sempre disponível, sem configuração.
+  async function demoExtraction(text, file) {
+    append({ role: 'user', text, file });
     append({ typing: true });
-    await sleep(1300);
+    await sleep(1200);
     popTyping();
     append({ role: 'bot', html: '<i>(modo demonstração)</i> Identifiquei uma <b>Licença de Operação</b> da <b>CPRH</b>. Estruturei os dados abaixo:' });
     append({ extract: buildSampleExtract() });
-    append({ role: 'bot', html: 'Posso <b>preencher o cadastro</b> ou <b>exportar para Excel</b>. Para ler um <b>arquivo real</b> (PDF/imagem) por OCR/visão, anexe-o com 📎 — configure a chave em <b>⚙ Configurar IA</b>.' });
+    append({ role: 'bot', html: 'Posso <b>preencher o cadastro</b> ou <b>exportar para Excel</b> — é só clicar acima. ✅' });
   }
 
   async function processDocument(file) {
+    // Sem chave configurada → demonstração automática (sem pedir configuração).
+    if (!hasKey()) return demoExtraction('Leia esta licença e cadastre para mim.', file.name);
     append({ role: 'user', text: 'Leia esta licença e cadastre para mim.', file: file.name });
     append({ typing: true });
     try {
@@ -92,17 +95,13 @@ export default function AssistenteIA() {
       append({ role: 'bot', html: 'Posso <b>preencher o cadastro</b> automaticamente ou <b>exportar para Excel</b> — é só clicar acima. ✅' });
     } catch (err) {
       popTyping();
-      if (err && err.needKey) {
-        append({ role: 'bot', html: 'Para ler arquivos reais por IA, preciso da sua <b>chave da API Anthropic</b>. Abrindo a configuração…' });
-        return openModal('aiKey');
-      }
-      append({ role: 'bot', html: `⚠️ Não consegui usar a API (<code>${(err && err.message) || 'erro'}</code>). Verifique a chave em <b>⚙ Configurar IA</b>. Segue uma extração <i>simulada</i>:` });
+      append({ role: 'bot', html: `⚠️ Não consegui usar a API (<code>${(err && err.message) || 'erro'}</code>). Segue uma extração <i>simulada</i>:` });
       append({ extract: buildSampleExtract() });
     }
   }
 
   async function handleSug(kind) {
-    if (kind === 'exemplo') return simulateExtraction('Licenca_Operacao_045-2023_CPRH.pdf');
+    if (kind === 'exemplo') return demoExtraction('Leia esta licença de exemplo e cadastre para mim.', 'Licenca_Operacao_045-2023_CPRH.pdf');
   }
 
   async function doSend() {
@@ -135,7 +134,6 @@ export default function AssistenteIA() {
         <div className="ai-hist">
           <div className="nh">
             <button className="btn btn-primary btn-sm" style={{ width: '100%' }} onClick={() => { setMessages([]); setAttachments([]); }}><Icon name="plus" /> Nova conversa</button>
-            <button className="btn btn-ghost btn-sm" style={{ width: '100%', marginTop: 8 }} onClick={() => openModal('aiKey')}><Icon name="gear" /> Configurar IA</button>
           </div>
           <div style={{ padding: '8px 4px', flex: 1, overflow: 'auto' }}>
             <div className="ai-conv on">Conversa atual<small>Assistente de licenças</small></div>
@@ -150,12 +148,11 @@ export default function AssistenteIA() {
                 <h3 style={{ color: 'var(--tinta)', fontSize: 17, margin: '0 0 6px' }}>Assistente de Licenças GML</h3>
                 <p style={{ margin: 0 }}>
                   Anexe o <b>PDF</b> ou a <b>imagem</b> de uma licença (botão 📎). A IA lê o documento por <b>OCR/visão</b>, identifica tipo, órgão, processo, validade e condicionantes — e cadastra a licença automaticamente.<br />
-                  <span style={{ fontSize: 11.5 }}>Para leitura real, configure sua chave em <b>⚙ Configurar IA</b>.{getKey() ? ' (chave configurada ✓)' : ''}</span>
+                  <span style={{ fontSize: 11.5 }}>{hasKey() ? '🟢 IA conectada à API do Claude.' : '🟡 Modo demonstração ativo — funciona sem configuração.'}</span>
                 </p>
                 <div className="ai-suggest">
-                  <button onClick={() => handleSug('exemplo')}>📄 Ler licença de exemplo (demo)</button>
-                  <button onClick={() => fileRef.current.click()}>📎 Anexar PDF/imagem real</button>
-                  <button onClick={() => openModal('aiKey')}>⚙ Configurar chave da API</button>
+                  <button onClick={() => handleSug('exemplo')}>📄 Ler licença de exemplo</button>
+                  <button onClick={() => fileRef.current.click()}>📎 Anexar PDF/imagem</button>
                 </div>
               </div>
             ) : messages.map((m) => {
