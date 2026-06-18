@@ -216,6 +216,30 @@ table.tbl{width:100%;border-collapse:collapse;font-size:13px}
 .ecard-acts{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--linha);background:var(--suave)}
 
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--tinta);color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:80;animation:fade .2s}
+
+/* Licenças table extras */
+.badge{display:inline-flex;align-items:center;padding:4px 13px;border-radius:8px;font-size:11.5px;font-weight:800}
+.rchip{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--azul-d)}
+
+/* Print-style license detail modal */
+.modal.lic{max-width:420px}
+.lic-detail{display:flex;flex-direction:column}
+.ld-head{background:linear-gradient(160deg,#2E60AD,#234E91);color:#fff;padding:22px 22px 20px;position:relative}
+.ld-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.2);border:0;color:#fff}
+.ld-close:hover{background:rgba(255,255,255,.3)}
+.ld-label{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.72)}
+.ld-id{font-size:24px;font-weight:800;margin-top:4px}
+.ld-sub{font-size:12.5px;color:rgba(255,255,255,.85);margin-top:2px}
+.ld-resp{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.14);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;margin-top:14px}
+.ld-badge{display:flex;align-items:center;gap:8px;border-radius:9px;padding:10px 14px;font-size:12.5px;font-weight:800;margin-top:12px}
+.ld-badge svg{width:15px;height:15px}
+.ld-body{padding:18px 22px 6px}
+.ld-h4{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--cinza);font-weight:800;margin-bottom:10px}
+.ld-cond{display:flex;gap:10px;align-items:flex-start;padding:11px 12px;border:1px solid var(--linha);border-radius:11px;margin-bottom:8px}
+.ld-cond:last-child{margin-bottom:0}
+.ld-foot{display:flex;gap:10px;padding:14px 22px 8px}
+.ld-foot2{display:flex;gap:10px;padding:0 22px 18px;justify-content:flex-end}
+
 .hidden{display:none!important}
 </style>
 </head>
@@ -279,6 +303,7 @@ const I = {
   cam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>',
   check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>',
   spark:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M12 3l1.6 4.2L18 9l-4.4 1.8L12 15l-1.6-4.2L6 9l4.4-1.8z"/><path d="M5 16l.8 2L8 19l-2.2 1L5 22l-.8-2L2 19l2.2-1z"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 0 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H3a2 2 0 0 1 0-4h.1A1.6 1.6 0 0 0 4.6 7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 9 4.6V3a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7H21a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></svg>',
 };
 
 /* ============================ Dados ============================ */
@@ -298,24 +323,36 @@ const TIPOS = [
 const tipoCor = s => (TIPOS.find(t=>t.sigla===s)||{}).cor || '#6C757D';
 const tipoNome = s => (TIPOS.find(t=>t.sigla===s)||{}).nome || s;
 
+// Grupos responsáveis (matriz institucional) — usados no chip da tabela e no modal
+const RESP_COR = {'Equipes internas':'#2E60AD','Áreas internas':'#143A6B','Contratadas':'#28A745','Órgãos externos':'#FCB316'};
+
 let LICENCAS = [
-  {id:'LO-2023-045', sigla:'LO', orgao:'CPRH', processo:'2023.045.PE', validade:'07/06/2025', dias:7, status:'critica', cond:[
+  {id:'LO-2023-045', sigla:'LO', orgao:'CPRH', processo:'2023.045.PE', validade:'07/06/2025', dias:7, status:'critica', resp:'Equipes internas', respDet:'Meio Ambiente', cond:[
     {nome:'Monitoramento de efluentes', per:'Mensal', prog:62, st:'andamento'},
     {nome:'Renovação da LO (protocolo)', per:'Única', prog:30, st:'critica'},
     {nome:'Monitoramento de ruído', per:'Semestral', prog:15, st:'atencao'},
   ]},
-  {id:'LP-2024-118', sigla:'LP', orgao:'CPRH', processo:'2024.118.PE', validade:'15/06/2025', dias:15, status:'atencao', cond:[
+  {id:'LP-2024-118', sigla:'LP', orgao:'CPRH', processo:'2024.118.PE', validade:'15/06/2025', dias:15, status:'atencao', resp:'Áreas internas', respDet:'Engenharia', cond:[
     {nome:'Estudo de impacto de vizinhança', per:'Única', prog:80, st:'andamento'},
   ]},
-  {id:'AUT-2022-007', sigla:'AUT', orgao:'APAC', processo:'2022.007.PE', validade:'22/06/2025', dias:22, status:'atencao', cond:[
-    {nome:'Outorga de água (renovação)', per:'Única', prog:20, st:'andamento'},
-  ]},
-  {id:'LI-2023-090', sigla:'LI', orgao:'IBAMA', processo:'2023.090.PE', validade:'30/09/2025', dias:120, status:'andamento', cond:[
+  {id:'LI-2023-090', sigla:'LI', orgao:'IBAMA', processo:'2023.090.PE', validade:'30/09/2025', dias:120, status:'andamento', resp:'Contratadas', respDet:'Bioterra', cond:[
     {nome:'Relatório de fauna', per:'Trimestral', prog:100, st:'concluida'},
-    {nome:'Programa de educação ambiental', per:'Contínua', prog:50, st:'andamento'},
+    {nome:'Educação ambiental', per:'Contínua', prog:50, st:'andamento'},
   ]},
-  {id:'AUT-2024-031', sigla:'AUT', orgao:'IBAMA', processo:'2024.031.PE', validade:'12/08/2025', dias:78, status:'andamento', cond:[
+  {id:'RLO-2022-007', sigla:'RLO', orgao:'APAC', processo:'2022.007.PE', validade:'22/06/2025', dias:22, status:'atencao', resp:'Equipes internas', respDet:'Jurídico', cond:[
+    {nome:'Renovação da outorga de água', per:'Única', prog:20, st:'andamento'},
+  ]},
+  {id:'AUT-2024-031', sigla:'AUT', orgao:'IBAMA', processo:'2024.031.PE', validade:'12/08/2025', dias:78, status:'andamento', resp:'Áreas internas', respDet:'Financeiro', cond:[
     {nome:'Compensação ambiental', per:'Única', prog:40, st:'atrasada'},
+  ]},
+  {id:'PLI-2024-052', sigla:'PLI', orgao:'CPRH', processo:'2024.052.PE', validade:'05/07/2025', dias:42, status:'andamento', resp:'Contratadas', respDet:'Construtora Vita', cond:[
+    {nome:'Cronograma físico de obras', per:'Mensal', prog:35, st:'andamento'},
+  ]},
+  {id:'CP-2023-014', sigla:'CP', orgao:'Prefeitura', processo:'2023.014.PE', validade:'18/06/2025', dias:18, status:'atencao', resp:'Órgãos externos', respDet:'Prefeitura', cond:[
+    {nome:'Certidão de uso e ocupação do solo', per:'Única', prog:60, st:'andamento'},
+  ]},
+  {id:'LS-2024-077', sigla:'LS', orgao:'CPRH', processo:'2024.077.PE', validade:'28/07/2025', dias:62, status:'andamento', resp:'Equipes internas', respDet:'Operações', cond:[
+    {nome:'Plano de gestão de resíduos', per:'Mensal', prog:75, st:'andamento'},
   ]},
 ];
 
@@ -385,6 +422,10 @@ function toast(msg){ const t=document.createElement('div'); t.className='toast';
 function statusTag(st){ return `<span class="tag" style="background:${COR[st]}1f;color:${COR[st]}"><span class="dotmark" style="background:${COR[st]}"></span>${ST_LABEL[st]||st}</span>`; }
 function prioTag(p){ const c={'Urgente':'#DC3545','Alta':'#FCB316','Média':'#2E60AD','Baixa':'#6C757D'}[p]||'#6C757D'; return `<span class="tag" style="background:${c}1f;color:${c}">${p}</span>`; }
 const sleep = ms => new Promise(r=>setTimeout(r,ms));
+function riskColor(v){ const s=String(v||''); return /alto/i.test(s)?'#DC3545':/m[eé]d/i.test(s)?'#FCB316':'#28A745'; }
+function licStatusInfo(st){ return ({critica:['Crítica','#DC3545'], atencao:['Atenção','#FCB316']}[st]) || ['Válida','#28A745']; }
+function licBadge(st){ const [lb,c]=licStatusInfo(st); return `<span class="badge" style="background:${c};color:${st==='atencao'?'#1B2A4A':'#fff'}">${lb}</span>`; }
+function respChip(l){ const c=RESP_COR[l.resp]||'#6C757D'; return `<span class="rchip"><span class="dotmark" style="background:${c}"></span>${esc(l.resp)}${l.respDet?' · '+esc(l.respDet):''}</span>`; }
 
 /* ============================ Navegação ============================ */
 function renderMenu(){
@@ -484,53 +525,73 @@ function calendar(){
 function viewLicencas(){
   const filters = [['all','Todas'],...TIPOS.map(t=>[t.sigla,t.sigla])];
   const list = LICENCAS.filter(l=>state.licFilter==='all'||l.sigla===state.licFilter);
-  let sel = LICENCAS.find(l=>l.id===state.selLic);
-  if(!sel || (state.licFilter!=='all' && sel.sigla!==state.licFilter)) sel=list[0];
 
   const rows = list.map(l=>`
     <tr class="click" data-lic="${l.id}">
       <td><span class="sigla" style="background:${tipoCor(l.sigla)}">${l.sigla}</span></td>
-      <td><b>${l.id}</b><div class="muted" style="font-size:11.5px">${esc(tipoNome(l.sigla))}</div></td>
-      <td>${l.orgao}</td>
+      <td><b>${l.id}</b><div class="muted" style="font-size:11.5px">${esc(tipoNome(l.sigla))} · ${l.orgao}</div></td>
+      <td>${respChip(l)}</td>
       <td>${l.validade}</td>
-      <td>${statusTag(l.status)}</td>
-      <td style="text-align:right;white-space:nowrap">
-        <button class="btn btn-ghost btn-icon" data-edit="${l.id}" title="Editar">${I.edit}</button>
-        <button class="btn btn-ghost btn-icon" data-del="${l.id}" title="Excluir">${I.trash}</button>
-      </td>
+      <td style="text-align:right">${licBadge(l.status)}</td>
     </tr>`).join('');
 
   return `
-  <div class="grid" style="grid-template-columns:1fr 360px">
-    <div class="card">
-      <div class="card-head">
-        <div><h3>Licenças ambientais</h3><div class="sub">${list.length} licença${list.length!==1?'s':''}${state.licFilter!=='all'?' · '+state.licFilter:''}</div></div>
-        <button class="btn btn-primary btn-sm" id="novaLic">${I.plus} Nova licença</button>
-      </div>
-      <div class="filters" style="margin-bottom:14px">${filters.map(([k,lb])=>`<button class="fbtn ${state.licFilter===k?'on':''}" data-filt="${k}">${lb}</button>`).join('')}</div>
-      <table class="tbl">
-        <thead><tr><th>Tipo</th><th>Licença</th><th>Órgão</th><th>Validade</th><th>Status</th><th></th></tr></thead>
-        <tbody>${rows||`<tr><td colspan="6" class="muted" style="text-align:center;padding:30px">Nenhuma licença neste filtro.</td></tr>`}</tbody>
-      </table>
+  <div class="card">
+    <div class="card-head">
+      <div><h3>Licenças &amp; Condicionantes</h3><div class="sub">Filtre por tipo e toque numa licença para abrir o detalhe</div></div>
+      <button class="btn btn-primary btn-sm" id="novaLic">${I.plus} Nova licença</button>
     </div>
-    ${sel?detailLic(sel):'<div class="card muted">Selecione uma licença.</div>'}
+    <div class="filters" style="margin-bottom:14px">${filters.map(([k,lb])=>`<button class="fbtn ${state.licFilter===k?'on':''}" data-filt="${k}">${lb}</button>`).join('')}</div>
+    <table class="tbl">
+      <thead><tr><th>Tipo</th><th>Licença / Órgão</th><th>Responsável</th><th>Validade</th><th style="text-align:right">Status</th></tr></thead>
+      <tbody>${rows||`<tr><td colspan="5" class="muted" style="text-align:center;padding:30px">Nenhuma licença neste filtro.</td></tr>`}</tbody>
+    </table>
   </div>`;
 }
 
-function detailLic(l){
-  const ko = l.dias<=15;
-  return `<div class="detail">
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.7)">${esc(tipoNome(l.sigla))} · ${l.orgao}</div>
-    <div class="num">${l.id}</div>
-    <div class="ko" style="background:${ko?'rgba(220,53,69,.92)':'rgba(255,255,255,.16)'}">${I.clock} ${ko?`Vence em ${l.dias} dias`:`Válida até ${l.validade}`} — ${l.validade}</div>
-    <div style="font-size:12px;color:rgba(255,255,255,.85)">Processo ${esc(l.processo)}</div>
-    <h4>Condicionantes vinculadas</h4>
-    ${l.cond.length?l.cond.map(c=>`<div class="cond"><b>${esc(c.nome)}</b><span>${esc(c.per)} · ${c.prog}% concluído · ${ST_LABEL[c.st]}</span></div>`).join(''):'<div class="cond"><span>Nenhuma condicionante cadastrada.</span></div>'}
-    <div style="display:flex;gap:8px;margin-top:14px">
-      <button class="btn btn-sm" style="background:rgba(255,255,255,.16);color:#fff" data-evlink="${l.id}">${I.evidencias} Evidências</button>
-      <button class="btn btn-sm" style="background:rgba(255,255,255,.16);color:#fff" data-edit="${l.id}">${I.edit} Editar</button>
+function openLicDetail(l){
+  if(!l) return;
+  state.selLic=l.id;
+  const c=RESP_COR[l.resp]||'#6C757D';
+  const valida = l.status!=='critica';
+  openModal(`
+    <div class="lic-detail">
+      <div class="ld-head">
+        <button class="close ld-close" id="mClose">×</button>
+        <div class="ld-label">Detalhe da licença</div>
+        <div class="ld-id">${esc(l.id)}</div>
+        <div class="ld-sub">${esc(tipoNome(l.sigla))} · ${esc(l.orgao)}</div>
+        <div class="ld-resp"><span class="dotmark" style="background:${c}"></span>Responsável: ${esc(l.resp)}${l.respDet?' · '+esc(l.respDet):''}</div>
+        <div class="ld-badge" style="background:${valida?'#28A745':'#DC3545'}">${I.clock} ${valida?'Válida até '+l.validade:'Vence em '+l.dias+' dias — '+l.validade}</div>
+      </div>
+      <div class="ld-body">
+        <div class="ld-h4">Condicionantes vinculadas</div>
+        ${l.cond.length?l.cond.map(cc=>`<div class="ld-cond"><span class="dotmark" style="background:${COR[cc.st]};margin-top:6px"></span><div><b>${esc(cc.nome)}</b><div class="muted" style="font-size:11.5px">${esc(cc.per)} · ${cc.prog===100?'concluído':cc.prog+'%'} · ${ST_LABEL[cc.st]}</div></div></div>`).join(''):'<div class="muted" style="font-size:12.5px">Nenhuma condicionante cadastrada.</div>'}
+      </div>
+      <div class="ld-foot">
+        <button class="btn btn-primary" data-evlink="${l.id}" style="flex:1">${I.evidencias} Ver evidências</button>
+        <button class="btn btn-ghost" data-hist="${l.id}" style="flex:1">Histórico</button>
+      </div>
+      <div class="ld-foot2">
+        <button class="btn btn-ghost btn-sm" data-edit="${l.id}">${I.edit} Editar</button>
+        <button class="btn btn-ghost btn-sm" data-del="${l.id}">${I.trash} Excluir</button>
+      </div>
+    </div>`, 'lic');
+}
+
+function openHistorico(l){
+  if(!l) return;
+  const ev=[
+    ['12/06/2025','Marina Alves','Condicionantes revisadas'],
+    ['02/05/2025','Sistema','Alerta de vencimento gerado'],
+    ['15/02/2024','J. Costa','Cadastro da licença'],
+  ];
+  openModal(`
+    <div class="modal-head"><h3>Histórico — ${esc(l.id)}</h3><button class="close" id="mClose">×</button></div>
+    <div class="modal-body">
+      ${ev.map(([d,u,tx])=>`<div style="display:flex;gap:12px"><div style="width:9px;height:9px;border-radius:50%;background:var(--azul);margin-top:5px;flex:none"></div><div><b style="font-size:13px">${esc(tx)}</b><div class="muted" style="font-size:11.5px">${d} · ${esc(u)}</div></div></div>`).join('')}
     </div>
-  </div>`;
+    <div class="modal-foot"><button class="btn btn-ghost" id="mCancel">Fechar</button></div>`);
 }
 
 /* ============================ Prazos e Demandas ============================ */
@@ -621,7 +682,7 @@ function viewIA(){
   return `
   <div class="ai-wrap">
     <div class="ai-hist">
-      <div class="nh"><button class="btn btn-primary btn-sm" style="width:100%" id="aiNew">${I.plus} Nova conversa</button></div>
+      <div class="nh"><button class="btn btn-primary btn-sm" style="width:100%" id="aiNew">${I.plus} Nova conversa</button><button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" id="aiCfg">${I.gear} Configurar IA</button></div>
       <div style="padding:8px 4px;flex:1;overflow:auto">
         <div class="ai-conv on">Conversa atual<small>Assistente de licenças</small></div>
         ${hist.map(h=>`<div class="ai-conv">${esc(h.t)}<small>${esc(h.s)}</small></div>`).join('')}
@@ -645,9 +706,9 @@ function aiEmptyState(){
   return `<div class="ai-empty">
     <div class="spark">${I.spark}</div>
     <h3 style="color:var(--tinta);font-size:17px;margin:0 0 6px">Assistente de Licenças GML</h3>
-    <p style="margin:0">Envie o <b>PDF</b> ou a <b>imagem</b> de uma licença. A IA lê o documento, identifica tipo, órgão, número do processo, validade e condicionantes — e cadastra a licença automaticamente.</p>
+    <p style="margin:0">Anexe o <b>PDF</b> ou a <b>imagem</b> de uma licença (botão 📎). A IA lê o documento por <b>OCR/visão</b>, identifica tipo, órgão, processo, validade e condicionantes — e cadastra a licença automaticamente.<br><span style="font-size:11.5px">Para leitura real, configure sua chave em <b>⚙ Configurar IA</b>.</span></p>
     <div class="ai-suggest">
-      <button data-sug="exemplo">📄 Ler licença de exemplo (LO/CPRH)</button>
+      <button data-sug="exemplo">📄 Ler licença de exemplo (demo)</button>
       <button data-sug="vencendo">⏰ Quais licenças vencem este mês?</button>
       <button data-sug="resumo">📝 Resumo executivo da LO-2023-045</button>
     </div>
@@ -713,13 +774,100 @@ function buildSampleExtract(){
   EXTRACTS[id]=d; return d;
 }
 
-/* Usa window.claude.complete se existir; senão modo simulado */
-async function askAI(prompt){
-  if(window.claude && typeof window.claude.complete==='function'){
-    try{ return await window.claude.complete(prompt); }catch(e){}
-  }
-  await sleep(700);
-  return null;
+/* ---- Conexão real de OCR/Visão (API do Claude/Anthropic) ---- */
+const AI_KEY = 'gml_anthropic_key';
+const getKey = () => localStorage.getItem(AI_KEY) || '';
+
+function fileToBase64(file){
+  return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(',')[1]); r.onerror=rej; r.readAsDataURL(file); });
+}
+
+const EXTRACT_SCHEMA = {
+  type:'object', additionalProperties:false,
+  required:['tipo','sigla','orgao','processo','validade','classificacao_risco','resumo','condicionantes'],
+  properties:{
+    tipo:{type:'string'},
+    sigla:{type:'string', enum:['AUT','LP','LI','LO','RLO','PLI','CP','LS']},
+    orgao:{type:'string'},
+    processo:{type:'string'},
+    validade:{type:'string'},
+    classificacao_risco:{type:'string', enum:['Baixo','Médio','Alto']},
+    resumo:{type:'string'},
+    condicionantes:{type:'array', items:{
+      type:'object', additionalProperties:false,
+      required:['descricao','periodicidade','prazo','risco'],
+      properties:{
+        descricao:{type:'string'}, periodicidade:{type:'string'}, prazo:{type:'string'},
+        risco:{type:'string', enum:['Baixo','Médio','Alto']},
+      }}},
+  }};
+
+// Lê PDF/imagem de licença via Claude (visão) e devolve JSON estruturado.
+async function callAnthropicVision(file){
+  const key = getKey();
+  if(!key){ const e=new Error('sem chave'); e.needKey=true; throw e; }
+  const b64 = await fileToBase64(file);
+  const isPdf = file.type==='application/pdf' || /\.pdf$/i.test(file.name||'');
+  const media = isPdf ? 'application/pdf' : (file.type || 'image/png');
+  const docBlock = isPdf
+    ? {type:'document', source:{type:'base64', media_type:'application/pdf', data:b64}}
+    : {type:'image', source:{type:'base64', media_type:media, data:b64}};
+  const prompt = 'Você é um analista de gestão ambiental. Leia esta licença ambiental brasileira e extraia os dados. '
+    + 'Identifique a sigla do tipo (AUT, LP, LI, LO, RLO, PLI, CP ou LS), o órgão emissor, o número do processo, '
+    + 'a data de validade, uma classificação de risco geral (Baixo/Médio/Alto), um resumo de uma frase e todas as condicionantes '
+    + '(descrição, periodicidade, prazo e risco). Responda apenas com os dados estruturados.';
+  const body = {
+    model:'claude-opus-4-8',
+    max_tokens:4000,
+    messages:[{role:'user', content:[ docBlock, {type:'text', text:prompt} ]}],
+    output_config:{ format:{ type:'json_schema', schema:EXTRACT_SCHEMA } },
+  };
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{
+      'content-type':'application/json',
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true',
+    },
+    body: JSON.stringify(body),
+  });
+  if(!resp.ok){ let msg=resp.status+''; try{ const j=await resp.json(); msg=(j.error&&j.error.message)||msg; }catch(_){} throw new Error(msg); }
+  const data = await resp.json();
+  const txt = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+  return JSON.parse(txt);
+}
+
+// Converte o JSON da IA para o formato do cartão/cadastro.
+function adaptExtract(j){
+  const id='EX-'+Date.now();
+  const d = {
+    id, sigla:(j.sigla||'LO'), tipo:(j.tipo||tipoNome(j.sigla)), orgao:(j.orgao||'—'),
+    processo:(j.processo||'—'), validade:(j.validade||'—'),
+    risco:(j.classificacao_risco||'—'), riscoCor:riskColor(j.classificacao_risco),
+    resumo:(j.resumo||'—'),
+    cond:(Array.isArray(j.condicionantes)?j.condicionantes:[]).map(c=>({
+      descricao:(c.descricao||'—'), periodicidade:(c.periodicidade||'—'),
+      prazo:(c.prazo||'—'), risco:(c.risco||'—'), cor:riskColor(c.risco),
+    })),
+  };
+  EXTRACTS[id]=d; return d;
+}
+
+function openKeyModal(){
+  const cur=getKey();
+  openModal(`
+    <div class="modal-head"><h3>Configurar IA · OCR / Visão</h3><button class="close" id="mClose">×</button></div>
+    <div class="modal-body">
+      <div class="muted" style="font-size:12.5px;line-height:1.5">A leitura real de licenças usa a <b>API do Claude (Anthropic)</b> com visão e PDF (modelo <code>claude-opus-4-8</code>). Informe sua chave <code>sk-ant-…</code> — ela fica salva <b>apenas neste navegador</b>.</div>
+      <div class="field"><label>Chave da API Anthropic</label><input id="k_key" type="password" value="${esc(cur)}" placeholder="sk-ant-api03-…"></div>
+      <div style="background:#FFF7E6;border:1px solid #F5D58A;border-radius:10px;padding:10px 12px;font-size:11.5px;color:#7a5b12;line-height:1.5">⚠️ <b>Em produção, chame a API por um backend.</b> A chave usada direto no navegador fica exposta a qualquer pessoa com acesso à página.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="mCancel">Cancelar</button>
+      <button class="btn btn-primary" id="mSave">Salvar chave</button>
+    </div>`);
+  $('#mSave').onclick=()=>{ const v=$('#k_key').value.trim(); if(v) localStorage.setItem(AI_KEY,v); else localStorage.removeItem(AI_KEY); toast(v?'Chave salva ✓':'Chave removida'); closeModal(); };
 }
 function pushTyping(){ state.chat.push({typing:true}); renderMsgs(); }
 function popTyping(){ const i=state.chat.findIndex(m=>m.typing); if(i>=0) state.chat.splice(i,1); }
@@ -727,7 +875,7 @@ function pushUser(text, file){ state.chat.push({role:'user', text, file}); rende
 async function botReply(fn){ pushTyping(); await sleep(800); popTyping(); state.chat.push({role:'bot', html:fn()}); renderMsgs(); }
 
 async function handleSug(kind){
-  if(kind==='exemplo') return processDocument('Licenca_Operacao_045-2023_CPRH.pdf', true);
+  if(kind==='exemplo') return simulateExtraction('Licenca_Operacao_045-2023_CPRH.pdf');
   if(kind==='vencendo'){
     pushUser('Quais licenças vencem este mês?');
     return botReply(()=>{
@@ -747,14 +895,36 @@ async function handleSug(kind){
   }
 }
 
-async function processDocument(filename){
-  pushUser('Leia esta licença e cadastre para mim.', filename);
-  pushTyping(); await sleep(1300);
-  await askAI('Extraia os dados desta licença ambiental em JSON.');
-  popTyping();
-  state.chat.push({role:'bot', html:`Li o documento <b>${esc(filename)}</b> e identifiquei uma <b>Licença de Operação</b> emitida pela <b>CPRH</b>. Estruturei os dados abaixo:`});
+// Demonstração (sem arquivo real) — extração simulada
+async function simulateExtraction(filename){
+  pushUser('Leia esta licença de exemplo e cadastre para mim.', filename);
+  pushTyping(); await sleep(1300); popTyping();
+  state.chat.push({role:'bot', html:`<i>(modo demonstração)</i> Identifiquei uma <b>Licença de Operação</b> da <b>CPRH</b>. Estruturei os dados abaixo:`});
   state.chat.push({extract:buildSampleExtract()});
-  state.chat.push({role:'bot', html:`Posso <b>preencher o cadastro</b> automaticamente ou <b>exportar para a planilha Excel</b> padrão — é só clicar acima. ✅`});
+  state.chat.push({role:'bot', html:`Posso <b>preencher o cadastro</b> ou <b>exportar para Excel</b>. Para ler um <b>arquivo real</b> (PDF/imagem) por OCR/visão, anexe-o com 📎 — configure a chave da API em <b>⚙ Configurar IA</b>.`});
+  renderMsgs();
+}
+
+// Leitura REAL de um arquivo (PDF/imagem) via API de visão do Claude
+async function processDocument(file){
+  pushUser('Leia esta licença e cadastre para mim.', file.name);
+  pushTyping();
+  try{
+    const j = await callAnthropicVision(file);
+    popTyping();
+    const d = adaptExtract(j);
+    state.chat.push({role:'bot', html:`Li o arquivo <b>${esc(file.name)}</b> por OCR/visão e identifiquei uma <b>${esc(d.tipo)}</b> do órgão <b>${esc(d.orgao)}</b>. Dados extraídos:`});
+    state.chat.push({extract:d});
+    state.chat.push({role:'bot', html:`Posso <b>preencher o cadastro</b> automaticamente ou <b>exportar para Excel</b> — é só clicar acima. ✅`});
+  }catch(err){
+    popTyping();
+    if(err && err.needKey){
+      state.chat.push({role:'bot', html:`Para ler arquivos reais por IA, preciso da sua <b>chave da API Anthropic</b>. Abrindo a configuração…`});
+      renderMsgs(); return openKeyModal();
+    }
+    state.chat.push({role:'bot', html:`⚠️ Não consegui usar a API (<code>${esc(err.message||'erro')}</code>). Verifique a chave em <b>⚙ Configurar IA</b>. Enquanto isso, segue uma extração <i>simulada</i> de demonstração:`});
+    state.chat.push({extract:buildSampleExtract()});
+  }
   renderMsgs();
 }
 
@@ -764,7 +934,7 @@ function fillCadastro(id){
   if(lic){
     lic.cond=d.cond.map(c=>({nome:c.descricao, per:c.periodicidade, prog:0, st:'pendente'}));
   } else {
-    lic={id:d.sigla+'-2023-045', sigla:d.sigla, orgao:d.orgao, processo:d.processo, validade:d.validade, dias:7, status:'critica',
+    lic={id:d.sigla+'-'+(d.processo||'NOVA').replace(/\D/g,'').slice(0,7), sigla:d.sigla, orgao:d.orgao, processo:d.processo, validade:d.validade, dias:7, status:'critica', resp:'Equipes internas', respDet:'IA',
       cond:d.cond.map(c=>({nome:c.descricao, per:c.periodicidade, prog:0, st:'pendente'}))};
     LICENCAS.unshift(lic);
   }
@@ -799,11 +969,12 @@ function wireIA(){
   }
   if(send) send.onclick=doSend;
   $('#aiClip').onclick=()=>$('#filePick').click();
+  $('#aiCfg').onclick=openKeyModal;
   $('#aiNew').onclick=()=>{ state.chat=[]; state.attachments=[]; renderAttach(); renderMsgs(); };
 }
 function renderAttach(){
   const box=$('#aiAttach'); if(!box) return;
-  box.innerHTML=state.attachments.map((f,i)=>`<div class="ai-chip">${I.doc} ${esc(f)}<button data-rm="${i}">×</button></div>`).join('');
+  box.innerHTML=state.attachments.map((f,i)=>`<div class="ai-chip">${I.doc} ${esc(f.name||f)}<button data-rm="${i}">×</button></div>`).join('');
   document.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ state.attachments.splice(+b.dataset.rm,1); renderAttach(); });
 }
 async function doSend(){
@@ -837,8 +1008,8 @@ function geoThen(cb){
 }
 
 /* ============================ Modais (CRUD) ============================ */
-function openModal(html){
-  $('#modalRoot').innerHTML=`<div class="overlay" id="ov"><div class="modal">${html}</div></div>`;
+function openModal(html, cls=''){
+  $('#modalRoot').innerHTML=`<div class="overlay" id="ov"><div class="modal ${cls}">${html}</div></div>`;
   $('#ov').onclick=e=>{ if(e.target.id==='ov') closeModal(); };
   const x=$('#mClose'); if(x) x.onclick=closeModal;
   const c=$('#mCancel'); if(c) c.onclick=closeModal;
@@ -864,7 +1035,7 @@ function openLicModal(lic){
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" id="mCancel">Cancelar</button><button class="btn btn-primary" id="mSave">${edit?'Salvar alterações':'Cadastrar'}</button></div>`);
   $('#mSave').onclick=()=>{
-    const o={sigla:$('#f_sigla').value, orgao:$('#f_orgao').value, id:$('#f_id').value||('LIC-'+Date.now()), processo:$('#f_proc').value, validade:$('#f_val').value, dias:90, status:'andamento', cond:lic?lic.cond:[]};
+    const o={sigla:$('#f_sigla').value, orgao:$('#f_orgao').value, id:$('#f_id').value||('LIC-'+Date.now()), processo:$('#f_proc').value, validade:$('#f_val').value, dias:90, status:'andamento', resp:(lic&&lic.resp)||'Equipes internas', respDet:(lic&&lic.respDet)||'', cond:lic?lic.cond:[]};
     if(lic){ Object.assign(lic,o); toast('Licença atualizada ✓'); }
     else { LICENCAS.unshift(o); state.selLic=o.id; toast('Licença cadastrada ✓'); }
     closeModal(); render();
@@ -895,7 +1066,7 @@ function openDemModal(){
 
 /* ============================ Delegação de eventos ============================ */
 document.addEventListener('click', e=>{
-  const t=e.target.closest('[data-lic],[data-edit],[data-del],[data-filt],[data-pd],[data-deldem],[data-evlink],#novaLic,#novaDem,#upEv,#camEv');
+  const t=e.target.closest('[data-lic],[data-edit],[data-del],[data-hist],[data-filt],[data-pd],[data-deldem],[data-evlink],#novaLic,#novaDem,#upEv,#camEv');
   if(!t) return;
   if(t.id==='novaLic') return openLicModal(null);
   if(t.id==='novaDem') return openDemModal();
@@ -904,10 +1075,11 @@ document.addEventListener('click', e=>{
   if(t.dataset.filt!==undefined){ state.licFilter=t.dataset.filt; return render(); }
   if(t.dataset.pd!==undefined){ state.pdFilter=t.dataset.pd; return render(); }
   if(t.dataset.edit) return openLicModal(LICENCAS.find(l=>l.id===t.dataset.edit));
-  if(t.dataset.del){ if(confirm('Excluir a licença '+t.dataset.del+'?')){ LICENCAS=LICENCAS.filter(l=>l.id!==t.dataset.del); if(state.selLic===t.dataset.del) state.selLic=(LICENCAS[0]||{}).id; toast('Licença excluída'); render(); } return; }
+  if(t.dataset.hist) return openHistorico(LICENCAS.find(l=>l.id===t.dataset.hist));
+  if(t.dataset.del){ if(confirm('Excluir a licença '+t.dataset.del+'?')){ LICENCAS=LICENCAS.filter(l=>l.id!==t.dataset.del); if(state.selLic===t.dataset.del) state.selLic=(LICENCAS[0]||{}).id; toast('Licença excluída'); closeModal(); render(); } return; }
   if(t.dataset.deldem!==undefined){ DEMANDAS.splice(+t.dataset.deldem,1); toast('Item removido'); return render(); }
-  if(t.dataset.evlink) return go('evidencias');
-  if(t.dataset.lic){ state.selLic=t.dataset.lic; return render(); }
+  if(t.dataset.evlink){ closeModal(); return go('evidencias'); }
+  if(t.dataset.lic) return openLicDetail(LICENCAS.find(l=>l.id===t.dataset.lic));
 });
 
 $('#evPick').onchange=e=>{
@@ -917,7 +1089,7 @@ $('#evPick').onchange=e=>{
 };
 $('#filePick').onchange=e=>{
   if(!e.target.files.length) return;
-  state.attachments=[e.target.files[0].name]; e.target.value='';
+  state.attachments=[e.target.files[0]]; e.target.value='';
   renderAttach();
   toast('Arquivo anexado — clique em enviar para a IA ler');
 };
