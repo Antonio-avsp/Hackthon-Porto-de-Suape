@@ -1,106 +1,16 @@
-// ============================ Integração de IA (OCR / Visão) ============================
-// Leitura real de licenças (PDF/imagem) via API do Claude (Anthropic), direto do navegador.
-// ⚠️ Em produção, faça a chamada por um backend — a chave no navegador fica exposta.
-import { tipoNome, riskColor } from '../data.js';
-
-const AI_KEY = 'gml_anthropic_key';
-export const getKey = () => localStorage.getItem(AI_KEY) || '';
-export const setKey = (v) => { if (v) localStorage.setItem(AI_KEY, v); else localStorage.removeItem(AI_KEY); };
+// ============================================================
+// Helpers locais da Assistente de IA.
+// A leitura real de licenças e o chat agora passam pelo backend
+// (ver lib/api.js) — a chave da LLM fica no servidor, nunca no navegador.
+// Este arquivo mantém apenas utilitários de UI: extração de demonstração
+// (modo offline) e exportação para Excel.
+// ============================================================
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-export function fileToBase64(file) {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res(String(r.result).split(',')[1]);
-    r.onerror = rej;
-    r.readAsDataURL(file);
-  });
-}
-
-const EXTRACT_SCHEMA = {
-  type: 'object', additionalProperties: false,
-  required: ['tipo', 'sigla', 'orgao', 'processo', 'validade', 'classificacao_risco', 'resumo', 'condicionantes'],
-  properties: {
-    tipo: { type: 'string' },
-    sigla: { type: 'string', enum: ['AUT', 'LP', 'LI', 'LO', 'RLO', 'PLI', 'CP', 'LS'] },
-    orgao: { type: 'string' },
-    processo: { type: 'string' },
-    validade: { type: 'string' },
-    classificacao_risco: { type: 'string', enum: ['Baixo', 'Médio', 'Alto'] },
-    resumo: { type: 'string' },
-    condicionantes: {
-      type: 'array',
-      items: {
-        type: 'object', additionalProperties: false,
-        required: ['descricao', 'periodicidade', 'prazo', 'risco'],
-        properties: {
-          descricao: { type: 'string' }, periodicidade: { type: 'string' }, prazo: { type: 'string' },
-          risco: { type: 'string', enum: ['Baixo', 'Médio', 'Alto'] },
-        },
-      },
-    },
-  },
-};
-
-// Lê PDF/imagem de licença via Claude (visão) e devolve JSON estruturado.
-export async function callAnthropicVision(file) {
-  const key = getKey();
-  if (!key) { const e = new Error('sem chave'); e.needKey = true; throw e; }
-  const b64 = await fileToBase64(file);
-  const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name || '');
-  const media = isPdf ? 'application/pdf' : (file.type || 'image/png');
-  const docBlock = isPdf
-    ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } }
-    : { type: 'image', source: { type: 'base64', media_type: media, data: b64 } };
-  const prompt =
-    'Você é um analista de gestão ambiental. Leia esta licença ambiental brasileira e extraia os dados. ' +
-    'Identifique a sigla do tipo (AUT, LP, LI, LO, RLO, PLI, CP ou LS), o órgão emissor, o número do processo, ' +
-    'a data de validade, uma classificação de risco geral (Baixo/Médio/Alto), um resumo de uma frase e todas as condicionantes ' +
-    '(descrição, periodicidade, prazo e risco). Responda apenas com os dados estruturados.';
-  const body = {
-    model: 'claude-opus-4-8',
-    max_tokens: 4000,
-    messages: [{ role: 'user', content: [docBlock, { type: 'text', text: prompt }] }],
-    output_config: { format: { type: 'json_schema', schema: EXTRACT_SCHEMA } },
-  };
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify(body),
-  });
-  if (!resp.ok) {
-    let msg = String(resp.status);
-    try { const j = await resp.json(); msg = (j.error && j.error.message) || msg; } catch (_) {}
-    throw new Error(msg);
-  }
-  const data = await resp.json();
-  const txt = (data.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('');
-  return JSON.parse(txt);
-}
-
 let exId = 0;
-// Converte o JSON da IA para o formato do cartão/cadastro.
-export function adaptExtract(j) {
-  return {
-    id: 'EX-' + (++exId) + '-' + Date.now(),
-    sigla: j.sigla || 'LO', tipo: j.tipo || tipoNome(j.sigla), orgao: j.orgao || '—',
-    processo: j.processo || '—', validade: j.validade || '—',
-    risco: j.classificacao_risco || '—', riscoCor: riskColor(j.classificacao_risco),
-    resumo: j.resumo || '—',
-    cond: (Array.isArray(j.condicionantes) ? j.condicionantes : []).map((c) => ({
-      descricao: c.descricao || '—', periodicidade: c.periodicidade || '—',
-      prazo: c.prazo || '—', risco: c.risco || '—', cor: riskColor(c.risco),
-    })),
-  };
-}
 
-// Extração simulada (modo demonstração, sem chave/arquivo real).
+// Extração simulada (modo demonstração, sem backend/arquivo real).
 export function buildSampleExtract() {
   return {
     id: 'EX-DEMO-' + (++exId) + '-' + Date.now(),

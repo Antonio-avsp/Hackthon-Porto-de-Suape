@@ -21,17 +21,21 @@ npm run build && npm run preview   # build de produção
 | **Licenças** | Tabela com responsável e status; clique abre o **modal de detalhe** da licença; CRUD completo |
 | **Prazos e Demandas** | Demandas e prazos unificados (responsável, prioridade, status) |
 | **Evidências** | Upload e captura no app com **geolocalização automática** e mini-mapa |
-| **Assistente IA** | Chat que lê **PDF/imagem** de licença por **OCR/visão** (API do Claude), preenche o cadastro e exporta para Excel |
+| **Assistente IA** | Chat e leitura de **PDF/imagem** de licença via **backend GML** (Gemini), que preenche o cadastro e exporta para Excel |
 
-## 🤖 Leitura por IA (OCR/Visão)
+## 🤖 Leitura por IA (via backend)
 
-Em **⚙ Configurar IA**, informe sua chave da API Anthropic (`sk-ant-…`, salva apenas no
-navegador). Ao anexar um PDF/imagem, o app chama a **API do Claude** (`claude-opus-4-8`) com
-visão/PDF e extração estruturada (JSON). Sem chave, há um **modo demonstração** com extração
-simulada.
+O chat e a leitura de licenças usam o **[backend GML](../backend/)**, que conversa com o
+**Gemini** com a chave protegida no servidor — **a chave nunca fica no navegador**.
 
-> ⚠️ A chamada é feita direto do navegador (`anthropic-dangerous-direct-browser-access`),
-> o que expõe a chave. **Em produção, faça a chamada por um backend.**
+1. Suba o backend (`cd backend && npm install && npm run dev` — porta `3333`).
+2. No frontend, a URL do backend vem de `VITE_API_URL` (veja `.env.example`, padrão
+   `http://localhost:3333`) e pode ser ajustada em runtime no modal **⚙ Configurar IA**
+   (com botão **Testar conexão**).
+3. Sem backend acessível, o Assistente opera em **modo demonstração** (extração simulada).
+
+Fluxo: `Frontend → API Backend → Gemini → Backend → Frontend`. Detalhes e endpoints em
+[`backend/README.md`](../backend/README.md).
 
 ## 🗂️ Estrutura
 
@@ -50,7 +54,7 @@ gml-react/
     ├── components/         # Sidebar, Topbar, Toasts, Modal
     ├── screens/            # Dashboard, Licencas, Prazos, Evidencias, AssistenteIA
     ├── modals/             # LicencaForm, LicencaDetail, Historico, DemandaForm, AIKeyConfig
-    └── lib/                # ai.js (visão/OCR + Excel), geo.js (geolocalização)
+    └── lib/                # api.js (cliente do backend de IA), ai.js (demo + Excel), geo.js
 ```
 
 ## 🛠️ Tecnologia

@@ -3,7 +3,8 @@ import { Icon } from '../icons.jsx';
 import { Sigla, Dot } from '../ui.jsx';
 import { tipoCor } from '../data.js';
 import { useStore } from '../store.jsx';
-import { callAnthropicVision, adaptExtract, buildSampleExtract, exportExcel, getKey, sleep } from '../lib/ai.js';
+import { buildSampleExtract, exportExcel, sleep } from '../lib/ai.js';
+import { extractLicense, chatWithAI } from '../lib/api.js';
 
 const HIST = [
   { t: 'Leitura LO-2023-045', s: 'Hoje · extração concluída' },
@@ -63,11 +64,24 @@ export default function AssistenteIA() {
     setTimeout(() => setScreen('licencas'), 800);
   }, [upsertFromExtract, toast, append, setScreen]);
 
-  async function botReply(html) {
+  // Conversa de texto: envia o prompt + histórico ao backend (Gemini).
+  async function sendChat(prompt) {
+    const history = messages
+      .filter((m) => (m.role === 'user' || m.role === 'bot') && typeof m.text === 'string' && m.text)
+      .map((m) => ({ role: m.role === 'bot' ? 'assistant' : 'user', text: m.text }));
     append({ typing: true });
-    await sleep(800);
-    popTyping();
-    append({ role: 'bot', html });
+    try {
+      const reply = await chatWithAI(prompt, history);
+      popTyping();
+      append({ role: 'bot', text: reply });
+    } catch (err) {
+      popTyping();
+      if (err && err.connection) {
+        append({ role: 'bot', html: 'Não consegui falar com o <b>backend de IA</b>. Verifique se ele está rodando (porta 3333) e a URL em <b>⚙ Configurar IA</b>.' });
+        return openModal('aiKey');
+      }
+      append({ role: 'bot', html: `⚠️ A IA não respondeu agora (<code>${(err && err.message) || 'erro'}</code>). Tente novamente em instantes.` });
+    }
   }
 
   async function simulateExtraction(filename) {
@@ -77,26 +91,25 @@ export default function AssistenteIA() {
     popTyping();
     append({ role: 'bot', html: '<i>(modo demonstração)</i> Identifiquei uma <b>Licença de Operação</b> da <b>CPRH</b>. Estruturei os dados abaixo:' });
     append({ extract: buildSampleExtract() });
-    append({ role: 'bot', html: 'Posso <b>preencher o cadastro</b> ou <b>exportar para Excel</b>. Para ler um <b>arquivo real</b> (PDF/imagem) por OCR/visão, anexe-o com 📎 — configure a chave em <b>⚙ Configurar IA</b>.' });
+    append({ role: 'bot', html: 'Posso <b>preencher o cadastro</b> ou <b>exportar para Excel</b>. Para ler um <b>arquivo real</b> (PDF/imagem), anexe-o com 📎 — o <b>backend GML</b> faz a leitura via IA.' });
   }
 
   async function processDocument(file) {
     append({ role: 'user', text: 'Leia esta licença e cadastre para mim.', file: file.name });
     append({ typing: true });
     try {
-      const j = await callAnthropicVision(file);
+      const d = await extractLicense(file);
       popTyping();
-      const d = adaptExtract(j);
-      append({ role: 'bot', html: `Li o arquivo <b>${file.name}</b> por OCR/visão e identifiquei uma <b>${d.tipo}</b> do órgão <b>${d.orgao}</b>. Dados extraídos:` });
+      append({ role: 'bot', html: `Li o arquivo <b>${file.name}</b> via backend (IA) e identifiquei uma <b>${d.tipo}</b> do órgão <b>${d.orgao}</b>. Dados extraídos:` });
       append({ extract: d });
       append({ role: 'bot', html: 'Posso <b>preencher o cadastro</b> automaticamente ou <b>exportar para Excel</b> — é só clicar acima. ✅' });
     } catch (err) {
       popTyping();
-      if (err && err.needKey) {
-        append({ role: 'bot', html: 'Para ler arquivos reais por IA, preciso da sua <b>chave da API Anthropic</b>. Abrindo a configuração…' });
+      if (err && err.connection) {
+        append({ role: 'bot', html: 'Não consegui falar com o <b>backend de IA</b>. Verifique se ele está rodando e a URL em <b>⚙ Configurar IA</b>. Abrindo a configuração…' });
         return openModal('aiKey');
       }
-      append({ role: 'bot', html: `⚠️ Não consegui usar a API (<code>${(err && err.message) || 'erro'}</code>). Verifique a chave em <b>⚙ Configurar IA</b>. Segue uma extração <i>simulada</i>:` });
+      append({ role: 'bot', html: `⚠️ Não consegui processar o arquivo (<code>${(err && err.message) || 'erro'}</code>). Segue uma extração <i>simulada</i>:` });
       append({ extract: buildSampleExtract() });
     }
   }
@@ -118,7 +131,7 @@ export default function AssistenteIA() {
     setText('');
     if (taRef.current) taRef.current.style.height = 'auto';
     append({ role: 'user', text: t });
-    await botReply('Entendi. Posso <b>ler licenças</b>, <b>extrair condicionantes</b>, <b>controlar prazos</b> e <b>gerar resumos</b>. Envie o PDF ou a imagem de uma licença pelo botão 📎 e eu cadastro tudo automaticamente.');
+    await sendChat(t);
   }
 
   const onPick = (e) => {
@@ -150,7 +163,7 @@ export default function AssistenteIA() {
                 <h3 style={{ color: 'var(--tinta)', fontSize: 17, margin: '0 0 6px' }}>Assistente de Licenças GML</h3>
                 <p style={{ margin: 0 }}>
                   Anexe o <b>PDF</b> ou a <b>imagem</b> de uma licença (botão 📎). A IA lê o documento por <b>OCR/visão</b>, identifica tipo, órgão, processo, validade e condicionantes — e cadastra a licença automaticamente.<br />
-                  <span style={{ fontSize: 11.5 }}>Para leitura real, configure sua chave em <b>⚙ Configurar IA</b>.{getKey() ? ' (chave configurada ✓)' : ''}</span>
+                  <span style={{ fontSize: 11.5 }}>A leitura e o chat usam o <b>backend GML</b> (Gemini). Configure a URL em <b>⚙ Configurar IA</b>.</span>
                 </p>
                 <div className="ai-suggest">
                   <button onClick={() => handleSug('exemplo')}>📄 Ler licença de exemplo (demo)</button>
