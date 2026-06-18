@@ -48,9 +48,16 @@ python3 -m http.server 8080
 # depois acesse  http://localhost:8080/gml.html
 ```
 
-> Funciona **offline** (apenas a fonte Hanken Grotesk vem do Google Fonts).
-> O Assistente IA usa `window.claude.complete()` quando disponível; fora desse ambiente,
-> opera em **modo demonstração** com extração simulada — mantendo todo o fluxo navegável.
+> A interface funciona **offline** (apenas a fonte Hanken Grotesk vem do Google Fonts).
+>
+> **Leitura de licenças por IA (OCR/visão):** em **⚙ Configurar IA** informe sua chave da
+> API Anthropic (`sk-ant-…`, salva apenas no navegador). Ao anexar um **PDF ou imagem** de
+> licença, o app chama a **API do Claude** (`claude-opus-4-8`) com visão/PDF e extração
+> estruturada (JSON), preenche o cadastro e exporta para Excel. Sem chave, o exemplo opera
+> em **modo demonstração** com extração simulada.
+>
+> ⚠️ A chamada é feita direto do navegador (com `anthropic-dangerous-direct-browser-access`).
+> Isso expõe a chave — **em produção, faça a chamada por um backend**.
 
 ---
 
