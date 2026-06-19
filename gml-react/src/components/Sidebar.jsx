@@ -14,7 +14,7 @@ export default function Sidebar() {
             <path d="M6 18c3-5 7-8 11-9" stroke="#2E60AD" strokeWidth="1.6" strokeLinecap="round" />
           </svg>
         </div>
-        <div><b>GML</b><span>Gestão Ambiental</span></div>
+        <div><b>A.L.I.A</b><span>Inteligência Ambiental</span></div>
       </div>
       <nav className="menu">
         {NAV.map((n) => (

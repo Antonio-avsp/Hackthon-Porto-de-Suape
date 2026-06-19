@@ -5,17 +5,11 @@
 //   Frontend → API Backend → Gemini → Backend → Frontend
 // ============================================================
 
-// URL base do backend. Pode ser sobrescrita em tempo de build
-// (VITE_API_URL) ou em runtime, pelo modal "Configurar IA" (localStorage).
+// URL base do backend — conectado automaticamente (sem configuração).
+// Padrão localhost:3333; pode ser ajustada em build via VITE_API_URL.
 const DEFAULT_API = (import.meta.env && import.meta.env.VITE_API_URL) || 'http://localhost:3333';
-const API_URL_KEY = 'gml_api_url';
 
-export const getApiBase = () => (localStorage.getItem(API_URL_KEY) || DEFAULT_API).replace(/\/$/, '');
-export const setApiBase = (v) => {
-  const url = (v || '').trim().replace(/\/$/, '');
-  if (url) localStorage.setItem(API_URL_KEY, url);
-  else localStorage.removeItem(API_URL_KEY);
-};
+export const getApiBase = () => DEFAULT_API.replace(/\/$/, '');
 
 /** Lança um Error de conexão padronizado (backend fora do ar / CORS). */
 function connectionError() {

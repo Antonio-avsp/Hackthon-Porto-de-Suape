@@ -1,11 +1,12 @@
-# 🛡️ GML — Plataforma Inteligente de Gestão Ambiental
+# 🛡️ A.L.I.A — Automação de Licenças e Inteligência Ambiental
 
 > **Desafio GML** — Transformando dificuldades da Gestão Ambiental em soluções digitais · Porto de Suape
 >
 > *Cumprir é importante. **Comprovar é indispensável.***
 
-Plataforma que centraliza licenças, condicionantes, prazos e evidências ambientais —
-transformando dados dispersos em **inteligência, prevenção, conformidade e governança**.
+**A.L.I.A** (Automação de Licenças e Inteligência Ambiental) automatiza a gestão de licenças,
+condicionantes, prazos e evidências ambientais — reduzindo trabalho manual e transformando
+informações dispersas em **inteligência operacional**.
 
 A aplicação tem duas partes:
 
@@ -48,15 +49,19 @@ Detalhes e endpoints: [`backend/README.md`](backend/README.md).
 | **Evidências** | Upload (imagem/doc/vídeo) e captura no app, com **geolocalização automática** (lat, long, data, hora, usuário) e mini-mapa |
 | **Assistente IA** | Chat com anexos: envie o PDF/imagem de uma licença e a IA extrai tipo, órgão, processo, validade e condicionantes, **preenche o cadastro** e **exporta para Excel** |
 
-### 🤖 Leitura por IA (OCR/Visão)
+### 🤖 Assistente A.L.I.A (IA contextual)
 
-Em **⚙ Configurar IA**, informe sua chave da API Anthropic (`sk-ant-…`, salva apenas no
-navegador). Ao anexar um **PDF ou imagem** de licença, o app chama a **API do Claude**
-(`claude-opus-4-8`) com visão/PDF e extração estruturada (JSON), preenche o cadastro e
-exporta para Excel. Sem chave, opera em **modo demonstração** com extração simulada.
+O assistente é **conectado automaticamente** — sem nenhuma configuração na interface. A chave
+da LLM fica no **backend** (Gemini), nunca no navegador. Ele:
 
-> ⚠️ A chamada é feita direto do navegador (com `anthropic-dangerous-direct-browser-access`).
-> Isso expõe a chave — **em produção, faça a chamada por um backend**.
+- **Responde sobre seus dados reais** ("Quais licenças vencem este mês?", "Quais condicionantes
+  estão atrasadas?", "Quais evidências faltam para a licença X?") — calculado a partir do estado
+  da plataforma, e com o contexto do sistema enviado ao Gemini para perguntas abertas.
+- **Lê PDF/imagem de licença** (OCR/visão) via backend, extrai tipo, órgão, processo, validade e
+  condicionantes, **preenche o cadastro** e **exporta para Excel**.
+- **Memória de conversa** persistente — o histórico sobrevive à troca de telas e ao recarregar.
+
+Se o backend estiver fora do ar, o app cai em **modo demonstração** (extração simulada) e avisa.
 
 ---
 

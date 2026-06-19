@@ -12,7 +12,7 @@ import LicencaForm from './modals/LicencaForm.jsx';
 import LicencaDetail from './modals/LicencaDetail.jsx';
 import Historico from './modals/Historico.jsx';
 import DemandaForm from './modals/DemandaForm.jsx';
-import AIKeyConfig from './modals/AIKeyConfig.jsx';
+import CondList from './modals/CondList.jsx';
 
 const SCREENS = {
   dashboard: Dashboard,
@@ -30,7 +30,7 @@ function ModalHost() {
     case 'licDetail': return <LicencaDetail id={modal.payload} />;
     case 'historico': return <Historico id={modal.payload} />;
     case 'demForm': return <DemandaForm />;
-    case 'aiKey': return <AIKeyConfig />;
+    case 'condList': return <CondList id={modal.payload} />;
     default: return null;
   }
 }
