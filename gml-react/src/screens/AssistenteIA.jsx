@@ -13,6 +13,9 @@ const HIST = [
   { t: 'LI Terminal de granéis', s: '12 mai' },
 ];
 
+// Campo presente (extração preenchida e diferente do placeholder "—").
+const has = (v) => v && v !== '—';
+
 function ExtractCard({ d, onFill, onExcel, fillLabel = 'Preencher cadastro de licença', excelLabel = 'Exportar para Excel' }) {
   return (
     <div className="extract">
@@ -21,6 +24,13 @@ function ExtractCard({ d, onFill, onExcel, fillLabel = 'Preencher cadastro de li
         <div className="kv"><div className="k">Tipo</div><div className="v"><Sigla sigla={d.sigla} color={tipoCor(d.sigla)} style={{ minWidth: 38, height: 22 }} /> {d.tipo}</div></div>
         <div className="kv"><div className="k">Órgão emissor</div><div className="v">{d.orgao}</div></div>
         <div className="kv"><div className="k">Nº do processo</div><div className="v">{d.processo}</div></div>
+        {has(d.numero) ? <div className="kv"><div className="k">Nº da licença</div><div className="v">{d.numero}</div></div> : null}
+        {has(d.protocolo) ? <div className="kv"><div className="k">Nº de protocolo</div><div className="v">{d.protocolo}</div></div> : null}
+        {has(d.cnpjCpf) ? <div className="kv"><div className="k">CNPJ / CPF</div><div className="v">{d.cnpjCpf}</div></div> : null}
+        {has(d.endereco) ? <div className="kv"><div className="k">Endereço</div><div className="v">{d.endereco}</div></div> : null}
+        {has(d.municipio) ? <div className="kv"><div className="k">Município</div><div className="v">{d.municipio}</div></div> : null}
+        {has(d.cep) ? <div className="kv"><div className="k">CEP</div><div className="v">{d.cep}</div></div> : null}
+        {has(d.dataEmissao) ? <div className="kv"><div className="k">Data de emissão</div><div className="v">{d.dataEmissao}</div></div> : null}
         <div className="kv"><div className="k">Validade</div><div className="v">{d.validade}</div></div>
         <div className="kv"><div className="k">Classificação</div><div className="v" style={{ color: d.riscoCor, fontWeight: 800 }}>{d.risco}</div></div>
         <div className="kv"><div className="k">Resumo</div><div className="v" style={{ fontWeight: 500 }}>{d.resumo}</div></div>

@@ -50,21 +50,32 @@ const STATUS_LABEL = {
 
 const norm = (s) => String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
 
+const limpo = (v) => (v && v !== '—' ? String(v) : '');
+
 /** Valores a escrever, indexados pelo NOME normalizado do cabeçalho. */
 function valoresPorCabecalho(l) {
   const cond = (l.cond || []).map((c) => c.nome).filter(Boolean).join('; ');
+  // Endereço completo → coluna LOCALIZAÇÃO (endereço · município · CEP).
+  const localizacao = [limpo(l.endereco), limpo(l.municipio), l.cep && l.cep !== '—' ? `CEP ${l.cep}` : '']
+    .filter(Boolean).join(' · ') || limpo(l.localizacao);
+  // CNPJ/CPF, protocolo e resumo → coluna OBSERVAÇÃO (não há colunas dedicadas).
+  const observacao = [
+    l.cnpjCpf && l.cnpjCpf !== '—' ? `CNPJ/CPF: ${l.cnpjCpf}` : '',
+    l.protocolo && l.protocolo !== '—' ? `Protocolo: ${l.protocolo}` : '',
+    limpo(l.resumo),
+  ].filter(Boolean).join(' · ') || 'Cadastro automatizado pela A.L.I.A';
   return {
-    'objeto': l.objeto || l.id || '',
+    'objeto': limpo(l.objeto) || l.id || '',
     'tipo de licenciamento': l.sigla || '',
-    'localizacao': l.localizacao || '',
-    'descricao do empreendimento/ obra': l.descricao || l.resumo || '',
-    'n° do processo': l.processo || '',
+    'localizacao': localizacao,
+    'descricao do empreendimento/ obra': limpo(l.descricao) || limpo(l.resumo),
+    'n° do processo': limpo(l.processo),
     'status': STATUS_LABEL[l.status] || l.status || '',
-    'n° da licenca/autorizacao': l.numero || l.id || '',
-    'data da emissao': l.dataEmissao || '',
-    'validade': l.validade || '',
+    'n° da licenca/autorizacao': limpo(l.numero) || l.id || '',
+    'data da emissao': limpo(l.dataEmissao),
+    'validade': limpo(l.validade),
     'exigencias (condicionante)': cond,
-    'observacao': l.observacao || 'Cadastro automatizado pela A.L.I.A',
+    'observacao': observacao,
   };
 }
 
