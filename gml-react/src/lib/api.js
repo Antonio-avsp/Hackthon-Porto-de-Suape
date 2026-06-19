@@ -59,7 +59,30 @@ export async function extractLicense(file) {
 }
 
 /**
- * POST /api/ai/chat — conversa de texto com o assistente.
+ * POST /api/ai/assist — assistente contextual da A.L.I.A.
+ * Envia o ESTADO REAL da plataforma para o backend, que roda a camada de
+ * intenção determinística + contexto + modelo (espelha o Consultor IA do BB).
+ * @param {string} prompt
+ * @param {{licencas?:Array,demandas?:Array,evidencias?:Array}} [estado]
+ * @param {Array<{role:string,text:string}>} [history]
+ * @returns {Promise<{resposta:string,destaques:string[],acao_sugerida:string,intencao:string,fonte:string,kpis:object,score:object}>}
+ */
+export async function assistAI(prompt, estado = {}, history = []) {
+  let resp;
+  try {
+    resp = await fetch(`${getApiBase()}/api/ai/assist`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, estado, history }),
+    });
+  } catch {
+    throw connectionError();
+  }
+  return parse(resp); // { resposta, destaques, acao_sugerida, intencao, fonte, kpis, score, conversationId }
+}
+
+/**
+ * POST /api/ai/chat — conversa de texto direta com o modelo (legado/aberto).
  * @param {string} prompt
  * @param {Array<{role:string,text:string}>} [history]
  * @returns {Promise<string>} resposta da IA

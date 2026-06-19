@@ -4,8 +4,8 @@ import { Sigla, Dot } from '../ui.jsx';
 import { tipoCor } from '../data.js';
 import { useStore } from '../store.jsx';
 import { buildSampleExtract, exportExcel, sleep } from '../lib/ai.js';
-import { extractLicense, chatWithAI } from '../lib/api.js';
-import { flattenCondicionantes, buildContext, responderLocal } from '../lib/insights.js';
+import { extractLicense, assistAI } from '../lib/api.js';
+import { flattenCondicionantes, responderLocal } from '../lib/insights.js';
 
 const HIST = [
   { t: 'Leitura LO-2023-045', s: 'Hoje · extração concluída' },
@@ -87,31 +87,27 @@ export default function AssistenteIA() {
     setTimeout(() => setScreen('licencas'), 800);
   }, [upsertFromExtract, toast, append, setScreen]);
 
-  // Conversa de texto contextual:
-  // 1) tenta responder a partir dos dados reais da plataforma (sem LLM);
-  // 2) caso aberto, envia ao backend (Gemini) com o contexto do sistema.
+  // Conversa contextual (backend-centric, espelha o Consultor IA do BB):
+  // 1) envia o ESTADO REAL ao backend, que roda intenção determinística +
+  //    contexto + modelo e devolve a resposta estruturada;
+  // 2) se o backend estiver offline, cai no responderLocal (mesmos dados reais).
   async function sendChat(prompt) {
-    const conds = flattenCondicionantes(licencas, evidencias);
-    const local = responderLocal(prompt, { licencas, demandas, evidencias, conds });
-    if (local) {
-      append({ typing: true });
-      await sleep(450);
-      popTyping();
-      append({ role: 'bot', html: local });
-      return;
-    }
     const history = messages
       .filter((m) => (m.role === 'user' || m.role === 'bot') && typeof m.text === 'string' && m.text)
       .map((m) => ({ role: m.role === 'bot' ? 'assistant' : 'user', text: m.text }));
     append({ typing: true });
     try {
-      const contexto = buildContext(licencas, demandas, conds);
-      const reply = await chatWithAI(`${contexto}\n\n## PERGUNTA DO USUÁRIO\n${prompt}`, history);
+      const estado = { licencas, demandas, evidencias };
+      const data = await assistAI(prompt, estado, history);
       popTyping();
-      append({ role: 'bot', text: reply });
+      append({ role: 'bot', text: data.resposta, assist: data });
     } catch (err) {
       popTyping();
+      // Fallback OFFLINE: backend fora do ar → responde localmente com os dados reais.
       if (err && err.connection) {
+        const conds = flattenCondicionantes(licencas, evidencias);
+        const local = responderLocal(prompt, { licencas, demandas, evidencias, conds });
+        if (local) { append({ role: 'bot', html: local }); return; }
         append({ role: 'bot', html: 'Não consegui falar com o <b>backend de IA</b>. Confirme que ele está rodando na porta <b>3333</b> e tente novamente.' });
         return;
       }
@@ -219,6 +215,24 @@ export default function AssistenteIA() {
               );
               if (m.extract) return (
                 <div className="msg bot" key={m._id}><div className="ava" style={{ background: 'linear-gradient(135deg,#356bbd,#234E91)' }}>IA</div><div className="bub" style={{ padding: 0, background: 'transparent', border: 0, boxShadow: 'none' }}><ExtractCard d={m.extract} onFill={() => fillCadastro(m.extract)} onExcel={() => { exportExcel(m.extract); toast('Planilha Excel gerada ✓'); }} /></div></div>
+              );
+              if (m.assist) return (
+                <div className="msg bot" key={m._id}>
+                  <div className="ava" style={{ background: 'linear-gradient(135deg,#356bbd,#234E91)' }}>IA</div>
+                  <div className="bub">
+                    <div style={{ whiteSpace: 'pre-wrap' }}>{m.assist.resposta}</div>
+                    {(m.assist.destaques || []).length ? (
+                      <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {m.assist.destaques.map((d, i) => (
+                          <div key={i} style={{ fontSize: 12, fontWeight: 700, color: '#DC3545' }}>⚠ {d}</div>
+                        ))}
+                      </div>
+                    ) : null}
+                    {m.assist.acao_sugerida ? (
+                      <div style={{ marginTop: 8, fontSize: 12.5, fontWeight: 700, color: '#2E60AD' }}>💡 {m.assist.acao_sugerida}</div>
+                    ) : null}
+                  </div>
+                </div>
               );
               const isUser = m.role === 'user';
               return (
