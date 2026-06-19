@@ -49,50 +49,29 @@ function ExtractCard({ d, onFill, onExcel, fillLabel = 'Preencher cadastro de li
   );
 }
 
-const STORAGE_KEY = 'gml_chat_messages';
-const CONV_ID_KEY = 'gml_conv_id';
-
 let mid = 0;
 const nid = () => ++mid;
 
 const stripHtml = (html) => (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
-// Carrega o histórico salvo (descartando mensagens transitórias de "digitando")
-// e avança o contador de ids para evitar colisões após recarregar a página.
-function loadMessages() {
-  try {
-    const arr = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    if (!Array.isArray(arr)) return [];
-    mid = arr.reduce((max, m) => Math.max(max, m._id || 0), mid);
-    return arr.filter((m) => !m.typing);
-  } catch {
-    return [];
-  }
-}
-
 export default function AssistenteIA() {
   const { upsertFromExtract, reloadState, setScreen, toast, licencas, demandas, evidencias } = useStore();
-  const [messages, setMessages] = useState(loadMessages);
+  // A conversa começa SEMPRE vazia ao abrir a aba (a tela remonta via key={screen}
+  // no App). Nada é persistido entre navegações — cada visita é uma nova conversa.
+  const [messages, setMessages] = useState([]);
   const [attachments, setAttachments] = useState([]);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const fileRef = useRef(null);
   const msgsRef = useRef(null);
   const taRef = useRef(null);
-  const convIdRef = useRef(localStorage.getItem(CONV_ID_KEY) || null);
+  const convIdRef = useRef(null);
 
   const append = useCallback((m) => setMessages((x) => [...x, { _id: nid(), ...m }]), []);
   const popTyping = useCallback(() => setMessages((x) => x.filter((m) => !m.typing)), []);
 
   useEffect(() => {
     if (msgsRef.current) msgsRef.current.scrollTop = msgsRef.current.scrollHeight;
-  }, [messages]);
-
-  // Persiste a conversa para sobreviver à navegação entre telas e ao recarregar a página.
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.filter((m) => !m.typing)));
-    } catch { /* armazenamento indisponível — ignora */ }
   }, [messages]);
 
   const fillCadastro = useCallback((d) => {
@@ -137,10 +116,7 @@ export default function AssistenteIA() {
     append({ typing: true });
     try {
       const data = await assistAI(prompt, history, convIdRef.current);
-      if (data.conversationId) {
-        convIdRef.current = data.conversationId;
-        try { localStorage.setItem(CONV_ID_KEY, data.conversationId); } catch { /* ignora */ }
-      }
+      if (data.conversationId) convIdRef.current = data.conversationId;
       popTyping();
       append({ role: 'bot', text: data.resposta, assist: data });
     } catch (err) {
@@ -253,7 +229,7 @@ export default function AssistenteIA() {
       <div className="ai-wrap">
         <div className="ai-hist">
           <div className="nh">
-            <button className="btn btn-primary btn-sm" style={{ width: '100%' }} onClick={() => { setMessages([]); setAttachments([]); convIdRef.current = null; try { localStorage.removeItem(CONV_ID_KEY); } catch { /* ignora */ } }}><Icon name="plus" /> Nova conversa</button>
+            <button className="btn btn-primary btn-sm" style={{ width: '100%' }} onClick={() => { setMessages([]); setAttachments([]); convIdRef.current = null; }}><Icon name="plus" /> Nova conversa</button>
             <button className="btn btn-ghost btn-sm" style={{ width: '100%', marginTop: 6 }} onClick={baixarControle}><Icon name="excel" /> Baixar planilha de controle</button>
           </div>
           <div style={{ padding: '8px 4px', flex: 1, overflow: 'auto' }}>
