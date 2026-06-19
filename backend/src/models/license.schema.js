@@ -28,6 +28,8 @@ export const LICENSE_RESPONSE_SCHEMA = {
     numero: { type: 'string' },          // N° da licença/autorização
     processo: { type: 'string' },        // N° do processo administrativo
     protocolo: { type: 'string' },       // N° de protocolo / solicitação
+    data_solicitacao: { type: 'string' }, // Data da solicitação/requerimento
+    data_protocolo: { type: 'string' },  // Data do protocolo
     data_emissao: { type: 'string' },    // Data de emissão
     validade: { type: 'string' },
     objeto: { type: 'string' },          // Objeto / empreendimento / razão social
@@ -69,6 +71,8 @@ export function adaptLicenseExtract(raw = {}) {
     numero: raw.numero || '—',
     processo: raw.processo || '—',
     protocolo: raw.protocolo || '—',
+    dataSolicitacao: raw.data_solicitacao || '—',
+    dataProtocolo: raw.data_protocolo || '—',
     dataEmissao: raw.data_emissao || '—',
     objeto: raw.objeto || '—',
     endereco: raw.endereco || '—',
