@@ -125,11 +125,13 @@ export default function AssistenteIA() {
   }, [reloadState, toast, append]);
 
   // Conversa contextual (backend-centric):
-  // 1) envia histórico completo (texto + html stripado) para manter contexto;
+  // 1) envia histórico das mensagens anteriores (texto + html stripado) para contexto;
   // 2) mantém conversationId entre turnos para memória no backend;
   // 3) se o backend estiver offline, cai no responderLocal.
-  async function sendChat(prompt, currentMessages) {
-    const history = (currentMessages || messages)
+  async function sendChat(prompt) {
+    // `messages` aqui é o valor do render atual (antes de append ser processado),
+    // portanto não inclui a mensagem recém-adicionada — correto: history = contexto anterior.
+    const history = messages
       .filter((m) => (m.role === 'user' || m.role === 'bot') && (m.text || m.html))
       .map((m) => ({ role: m.role === 'bot' ? 'assistant' : 'user', text: m.text || stripHtml(m.html) }));
     append({ typing: true });
@@ -185,7 +187,8 @@ export default function AssistenteIA() {
       append({ ingest: { license: d, committed } });
       const avisos = (res.validacao && res.validacao.avisos) || [];
       if (avisos.length) append({ role: 'bot', text: '⚠️ Validação automática: ' + avisos.join(' · ') });
-      if (committed) await reloadState();
+      // Fire-and-forget: não bloqueia o fluxo do chat enquanto sincroniza o estado.
+      if (committed) reloadState();
     } catch (err) {
       popTyping();
       if (err && err.connection) {
@@ -204,9 +207,14 @@ export default function AssistenteIA() {
 
   // Faz uma pergunta pronta (sugestões) — passa pelo roteador contextual.
   async function askNow(q) {
-    const snapshot = [...messages, { _id: nid(), role: 'user', text: q }];
-    append({ role: 'user', text: q });
-    await sendChat(q, snapshot);
+    if (sending) return;
+    setSending(true);
+    try {
+      append({ role: 'user', text: q });
+      await sendChat(q);
+    } finally {
+      setSending(false);
+    }
   }
 
   async function doSend() {
@@ -225,10 +233,8 @@ export default function AssistenteIA() {
       if (!t) return;
       setText('');
       if (taRef.current) taRef.current.style.height = 'auto';
-      // Captura o estado atual das mensagens para montar o histórico correto
-      const snapshot = [...messages, { _id: nid(), role: 'user', text: t }];
       append({ role: 'user', text: t });
-      await sendChat(t, snapshot);
+      await sendChat(t);
     } finally {
       setSending(false);
     }
