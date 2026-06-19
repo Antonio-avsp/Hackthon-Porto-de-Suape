@@ -28,8 +28,13 @@ backend/
 │   ├── routes/                   # definição de endpoints (health, ai)
 │   ├── controllers/              # orquestram requisição → service → resposta
 │   ├── services/
-│   │   ├── geminiService.js      # camada exclusiva da LLM (prompts/orquestração)
-│   │   └── license.service.js    # regra de negócio: leitura de licenças
+│   │   ├── assistant.service.js          # orquestrador (intenção → dados → modelo → fallback)
+│   │   ├── intent.service.js             # classificação de intenção determinística (sem LLM)
+│   │   ├── environmentalContext.service.js # snapshot/KPIs/score + contexto escopado
+│   │   ├── prompts.js                    # system prompt ambiental + anti-injeção + schema JSON
+│   │   ├── deterministicAnswers.service.js # respostas exatas + fallback (sem LLM)
+│   │   ├── geminiService.js              # camada exclusiva da LLM (transporte/payload)
+│   │   └── license.service.js            # regra de negócio: leitura de licenças (OCR)
 │   ├── integrations/gemini/
 │   │   └── geminiClient.js       # cliente HTTP de baixo nível (timeout, retry)
 │   ├── repositories/             # persistência (conversas — em memória, plugável)
@@ -113,8 +118,28 @@ Status do serviço e disponibilidade da IA.
 curl http://localhost:3333/api/health
 ```
 
+### `POST /api/ai/assist` ⭐ (assistente contextual — recomendado)
+Assistente da A.L.I.A com **inteligência no servidor**, espelhando o padrão do Consultor IA do
+Banco do Brasil: classifica a **intenção** de forma determinística, deriva **KPIs/score** do
+**estado real** enviado pelo frontend, responde consultas operacionais de forma **exata** (sem LLM)
+e usa o Gemini apenas para pedidos analíticos (resumo executivo, relatório, plano de ação) — sempre
+com **fallback determinístico**. Ver detalhes em [`docs/ARQUITETURA-IA-ALIA.md`](../docs/ARQUITETURA-IA-ALIA.md).
+
+```bash
+curl -X POST http://localhost:3333/api/ai/assist \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Quais licenças vencem nos próximos 30 dias?",
+    "estado": { "licencas": [], "demandas": [], "evidencias": [] },
+    "history": [],
+    "refDate": "12/06/2025"
+  }'
+```
+
+Resposta (`data`): `{ "resposta", "destaques": [], "acao_sugerida", "intencao", "fonte": "deterministico|ia", "kpis", "score" }`.
+
 ### `POST /api/ai/chat`
-Conversa de texto com o assistente.
+Conversa de texto **direta** com o modelo (legado/aberto — sem a camada de intenção/contexto).
 
 ```bash
 curl -X POST http://localhost:3333/api/ai/chat \
@@ -199,11 +224,16 @@ Defina `CORS_ORIGIN=http://localhost:5173` no `.env` para liberar o Vite.
 - Autenticação opcional por `x-api-key` (ative definindo `API_KEY`).
 - Upload limitado a 15 MB e a tipos PDF/imagem.
 
-## 🧪 Teste rápido (sem chave)
+## 🧪 Testes
+
+A camada de inteligência é **determinística e testável** (espelha os testes do backend do BB):
 
 ```bash
+npm test                                  # 25 testes (intenção + contexto/KPIs + respostas), sem rede
 npm start
 curl http://localhost:3333/api/health     # { "ai": { "available": false } }
 ```
 
-Com a `GEMINI_API_KEY` configurada, `available` passa a `true` e os endpoints de IA funcionam.
+Mesmo **sem `GEMINI_API_KEY`**, o `/api/ai/assist` funciona: intenções diretas e operacionais são
+100% determinísticas e as analíticas usam o fallback. Com a chave configurada, `available` passa a
+`true` e os pedidos analíticos passam a ser narrados pelo modelo.

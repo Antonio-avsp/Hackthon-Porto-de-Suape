@@ -30,6 +30,25 @@ export function validateChat(req, _res, next) {
   next();
 }
 
+/** Valida o corpo do endpoint do assistente contextual (/assist). */
+export function validateAssist(req, _res, next) {
+  const { prompt, history, estado } = req.body || {};
+
+  if (!isNonEmptyString(prompt)) {
+    return next(ApiError.badRequest('O campo "prompt" é obrigatório e deve ser um texto não vazio.'));
+  }
+  if (prompt.length > 8000) {
+    return next(ApiError.badRequest('O campo "prompt" excede o limite de 8000 caracteres.'));
+  }
+  if (history !== undefined && !Array.isArray(history)) {
+    return next(ApiError.badRequest('O campo "history" deve ser uma lista de mensagens.'));
+  }
+  if (estado !== undefined && (typeof estado !== 'object' || estado === null || Array.isArray(estado))) {
+    return next(ApiError.badRequest('O campo "estado" deve ser um objeto { licencas, demandas, evidencias }.'));
+  }
+  next();
+}
+
 /** Valida o endpoint de extração por texto. */
 export function validateLicenseText(req, _res, next) {
   const { text } = req.body || {};

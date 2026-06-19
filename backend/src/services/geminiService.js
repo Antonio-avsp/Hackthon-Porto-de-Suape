@@ -72,15 +72,16 @@ export const geminiService = {
    * @param {Array<object>} params.parts  Partes de conteúdo (texto e/ou inlineData).
    * @param {object} params.schema        responseSchema do Gemini.
    * @param {string} [params.systemInstruction]
+   * @param {number} [params.temperature]  Padrão 0.1 (extração); ~0.4 p/ consultivo.
    * @returns {Promise<object>} JSON já parseado.
    */
-  async generateStructured({ parts, schema, systemInstruction }) {
+  async generateStructured({ parts, schema, systemInstruction, temperature = 0.1 }) {
     const { text } = await geminiClient.generateContent([{ role: 'user', parts }], {
       systemInstruction: systemInstruction
         ? { role: 'system', parts: [{ text: systemInstruction }] }
         : undefined,
       generationConfig: {
-        temperature: 0.1,
+        temperature,
         responseMimeType: 'application/json',
         responseSchema: schema,
       },
