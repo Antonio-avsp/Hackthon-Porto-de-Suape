@@ -8,6 +8,8 @@ import geminiService from '../services/geminiService.js';
 import licenseService from '../services/license.service.js';
 import assistantService from '../services/assistant.service.js';
 import conversationRepository from '../repositories/conversation.repository.js';
+import environmentalRepository from '../repositories/environmental.repository.js';
+import env from '../config/env.js';
 
 export const aiController = {
   /**
@@ -17,9 +19,14 @@ export const aiController = {
    * da plataforma (`estado`) para que toda a inteligência rode no servidor.
    */
   assist: asyncHandler(async (req, res) => {
-    const { prompt, estado = {}, history = [], conversationId, refDate } = req.body;
+    const { prompt, history = [], conversationId, refDate } = req.body;
 
-    const resultado = await assistantService.assist({ prompt, estado, history, refDate });
+    // Fonte única de verdade no servidor (Fase 3): o assistente lê o estado
+    // persistido — não depende mais do que o cliente enviar.
+    const estado = environmentalRepository.getState();
+    const resultado = await assistantService.assist({
+      prompt, estado, history, refDate: refDate || env.referenceDate,
+    });
 
     // Persistência opcional do histórico (repositório em memória).
     const id = conversationId || conversationRepository.create();

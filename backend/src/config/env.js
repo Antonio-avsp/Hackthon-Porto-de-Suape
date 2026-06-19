@@ -30,8 +30,14 @@ const env = Object.freeze({
   // Proteção opcional das rotas de IA.
   apiKey: process.env.API_KEY || '',
 
-  // Placeholder — reservado para uma futura camada de persistência.
+  // Persistência do estado ambiental (Fase 3). Arquivo JSON por padrão;
+  // DATABASE_URL fica reservado para trocar por um banco real (mesma interface).
   databaseUrl: process.env.DATABASE_URL || '',
+  dataFile: process.env.ALIA_DATA_FILE || '',
+
+  // Data de referência do cenário (âncora dos prazos do domínio). Mantém a
+  // narrativa do protótipo coerente (12/06/2025) e centraliza o "hoje" no servidor.
+  referenceDate: process.env.REFERENCE_DATE || '12/06/2025',
 
   gemini: {
     apiKey: process.env.GEMINI_API_KEY || '',

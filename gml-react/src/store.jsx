@@ -1,13 +1,19 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import { LICENCAS_INICIAIS, DEMANDAS_INICIAIS, EVIDENCIAS_INICIAIS } from './data.js';
+import { fetchEnvState, envApi } from './lib/api.js';
 
 const StoreContext = createContext(null);
 export const useStore = () => useContext(StoreContext);
 
 let toastId = 0;
 
+// Write-through: persiste no backend (fonte única) sem travar a UI; se o
+// servidor estiver offline, segue em modo local (degradado) silenciosamente.
+const persist = (p) => { Promise.resolve(p).catch(() => {}); };
+
 export function StoreProvider({ children }) {
   const [screen, setScreen] = useState('dashboard');
+  // Estado inicial = seed local (fallback). É substituído pela hidratação do backend no mount.
   const [licencas, setLicencas] = useState(LICENCAS_INICIAIS);
   const [demandas, setDemandas] = useState(DEMANDAS_INICIAIS);
   const [evidencias, setEvidencias] = useState(EVIDENCIAS_INICIAIS);
@@ -16,6 +22,27 @@ export function StoreProvider({ children }) {
   const [selLic, setSelLic] = useState('LO-2023-045');
   const [modal, setModal] = useState(null); // { type, payload }
   const [toasts, setToasts] = useState([]);
+
+  // Espelhos para compor o "próximo" array em coleções sem id (demandas/evidências).
+  const demandasRef = useRef(demandas);
+  const evidenciasRef = useRef(evidencias);
+  useEffect(() => { demandasRef.current = demandas; }, [demandas]);
+  useEffect(() => { evidenciasRef.current = evidencias; }, [evidencias]);
+
+  // Fase 3: hidrata o estado a partir do backend (sobrevive a refresh/nova sessão/
+  // dispositivo). Se o backend estiver fora do ar, mantém o seed local.
+  useEffect(() => {
+    let vivo = true;
+    fetchEnvState()
+      .then((s) => {
+        if (!vivo || !s) return;
+        if (Array.isArray(s.licencas)) setLicencas(s.licencas);
+        if (Array.isArray(s.demandas)) setDemandas(s.demandas);
+        if (Array.isArray(s.evidencias)) setEvidencias(s.evidencias);
+      })
+      .catch(() => { /* offline → segue com o seed local */ });
+    return () => { vivo = false; };
+  }, []);
 
   const toast = useCallback((msg) => {
     const id = ++toastId;
@@ -26,13 +53,15 @@ export function StoreProvider({ children }) {
   const openModal = useCallback((type, payload = null) => setModal({ type, payload }), []);
   const closeModal = useCallback(() => setModal(null), []);
 
-  // ---- ações sobre licenças ----
+  // ---- ações sobre licenças (write-through granular) ----
   const addLicenca = useCallback((lic) => {
     setLicencas((l) => [lic, ...l]);
     setSelLic(lic.id);
+    persist(envApi.addLicenca(lic));
   }, []);
   const updateLicenca = useCallback((id, patch) => {
     setLicencas((l) => l.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+    persist(envApi.updateLicenca(id, patch));
   }, []);
   const deleteLicenca = useCallback((id) => {
     setLicencas((l) => {
@@ -40,6 +69,7 @@ export function StoreProvider({ children }) {
       setSelLic((cur) => (cur === id ? (next[0] || {}).id : cur));
       return next;
     });
+    persist(envApi.deleteLicenca(id));
   }, []);
   // Cria ou atualiza a partir de uma extração de IA (por processo+sigla)
   const upsertFromExtract = useCallback((d) => {
@@ -58,19 +88,29 @@ export function StoreProvider({ children }) {
       return [novo, ...l];
     });
     if (createdId) setSelLic(createdId);
+    persist(envApi.upsertFromExtract(d)); // backend recomputa o mesmo id e persiste
     return createdId;
   }, []);
 
-  const addDemanda = useCallback((d) => setDemandas((x) => [d, ...x]), []);
-  const deleteDemanda = useCallback((idx) => setDemandas((x) => x.filter((_, i) => i !== idx)), []);
+  // ---- demandas (sem id → replace da coleção) ----
+  const addDemanda = useCallback((d) => {
+    const next = [d, ...demandasRef.current];
+    setDemandas(next);
+    persist(envApi.replaceDemandas(next));
+  }, []);
+  const deleteDemanda = useCallback((idx) => {
+    const next = demandasRef.current.filter((_, i) => i !== idx);
+    setDemandas(next);
+    persist(envApi.replaceDemandas(next));
+  }, []);
 
   const addEvidencia = useCallback((nome, lat, lng) => {
     const now = new Date();
     const hora = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-    setEvidencias((e) => [
-      { nome, tipo: 'Foto de campo', lic: selLic || 'LO-2023-045', cond: 'Registro de campo', resp: 'Marina Alves', data: '12/06/2025', hora, lat, lng },
-      ...e,
-    ]);
+    const nova = { nome, tipo: 'Foto de campo', lic: selLic || 'LO-2023-045', cond: 'Registro de campo', resp: 'Marina Alves', data: '12/06/2025', hora, lat, lng };
+    const next = [nova, ...evidenciasRef.current];
+    setEvidencias(next);
+    persist(envApi.replaceEvidencias(next));
     toast('Evidência registrada com geolocalização ✓');
   }, [selLic, toast]);
 

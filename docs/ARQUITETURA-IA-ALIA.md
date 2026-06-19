@@ -161,11 +161,15 @@ linguagem natural; **todo número vem de dado real**; **sempre há fallback dete
 - **Fase 1 — Núcleo cognitivo no backend** ✅ (implementado, ver §6): intenção, contexto/KPIs,
   prompt anti-injeção, saída JSON, validação, fallback, endpoint `/assist`, testes.
 - **Fase 2 — Frontend consome o núcleo** ✅: `assistAI`, renderização estruturada, fallback offline.
-- **Fase 3 — Fonte única no backend** (próximo): mover `data.js` para um `repository` no servidor,
-  com persistência (`DATABASE_URL` já reservado em `env.js`), para a memória sobreviver também a
-  **nova sessão/dispositivo**.
-- **Fase 4 — OCR → cadastro com validação** (próximo): aplicar `validar_e_normalizar` à extração de
-  licença antes de preencher o cadastro (datas/órgãos coerentes), espelhando o BB.
+- **Fase 3 — Fonte única no backend** ✅ (implementado, ver §6.6): o estado de domínio passou a
+  viver no servidor (`environmental.repository.js`), persistido em arquivo JSON e **semeado** no
+  primeiro acesso. O frontend **hidrata** do backend e faz **write-through** das mutações; o
+  `/assist` lê desse estado. A memória operacional sobrevive a **refresh, nova sessão e novo
+  dispositivo**. Seam pronto para trocar por `DATABASE_URL` sem mexer nos consumidores.
+- **Fase 4 — OCR → cadastro com validação** ✅ (implementado, ver §6.7): `licenseValidation.js`
+  valida e normaliza a extração (datas → DD/MM/AAAA, órgão canônico, nº de processo no formato,
+  periodicidade canônica, enums) **antes** de virar cadastro, devolvendo `validacao.avisos`
+  auditáveis — espelhando o `validar_e_normalizar` do BB.
 - **Fase 5 — Relatórios ricos via LLM** (próximo): resumo executivo / relatório de conformidade /
   plano de ação narrados pelo modelo sobre o snapshot (com o fallback determinístico já pronto).
 
@@ -192,13 +196,12 @@ linguagem natural; **todo número vem de dado real**; **sempre há fallback dete
 - Frontend: `lib/api.js` (+`assistAI`), `screens/AssistenteIA.jsx` (backend-centric + render estruturado).
 
 ### 6.3 Contrato do endpoint
-**`POST /api/ai/assist`**
+**`POST /api/ai/assist`** — *após a Fase 3, lê o estado da fonte única no servidor; o cliente só envia a pergunta e o histórico.*
 ```jsonc
 // request
 { "prompt": "Quais licenças vencem nos próximos 30 dias?",
-  "estado": { "licencas": [...], "demandas": [...], "evidencias": [...] },
   "history": [{ "role": "user|assistant", "text": "..." }],
-  "refDate": "12/06/2025" }            // opcional (default: hoje)
+  "refDate": "12/06/2025" }            // opcional (default: env.referenceDate)
 // response.data
 { "resposta": "1 licença(s) vencem nos próximos 30 dias: • LO-2023-045 ...",
   "destaques": ["LO-2023-045 vence em 7 dias"],
@@ -246,6 +249,35 @@ modelo** sobre o mesmo contexto, mantendo a validação e o fallback.
 
 ---
 
+### 6.6 Fase 3 — Fonte única de verdade no backend
+- **`src/data/seed.js`** — espelha `gml-react/src/data.js`; semeia o cenário no 1º acesso.
+- **`src/repositories/environmental.repository.js`** — estado server-side (licenças/demandas/
+  evidências) com **persistência em arquivo JSON** (`.data/environmental-state.json`, ignorado no
+  git). CRUD granular de licenças (`add/update/delete/upsertFromExtract`) e *replace* de
+  demandas/evidências. Interface estável → trocar por banco real (`DATABASE_URL`) é só reimplementar.
+- **`src/controllers/environmental.controller.js`** + **`routes/environmental.routes.js`** — expõem
+  `GET /api/environmental/state`, `POST/PATCH/DELETE /licencas`, `POST /licencas/extract-upsert`,
+  `PUT /demandas`, `PUT /evidencias`.
+- **`ai.controller.assist`** agora lê `repository.getState()` (fonte única) e usa `env.referenceDate`
+  (12/06/2025) — não depende mais do que o cliente envia.
+- **Frontend** (`store.jsx`): **hidrata** de `GET /state` no mount (fallback ao seed local se offline)
+  e faz **write-through** silencioso em cada mutação. As telas/modais **não mudaram** — o store é o
+  único ponto de integração.
+- **Comprovação:** criar uma licença → reiniciar o servidor → o `GET /state` e o `/assist` ainda a
+  enxergam (sobrevive a nova sessão/dispositivo). Coberto por `test/repository.test.js`.
+
+### 6.7 Fase 4 — Extração OCR com validação/normalização
+- **`src/models/licenseValidation.js`** — `validateAndNormalizeLicense(license)`:
+  - **datas** (validade e prazos das condicionantes) → `DD/MM/AAAA`, rejeitando datas impossíveis;
+  - **órgão** → grafia canônica (CPRH, IBAMA, APAC, ANA, MPF, ICMBio, …) ou aviso;
+  - **nº de processo** → confere o formato `2023.045.PE`;
+  - **periodicidade** → conjunto canônico (Mensal, Trimestral, …);
+  - **enums** (sigla/risco) reforçados; **coerência**: validade já vencida vira aviso.
+- Retorna `validacao: { ok, avisos[] }`. O `license.service.js` aplica isso após `adaptLicenseExtract`;
+  o `AssistenteIA.jsx` mostra os avisos no chat antes de "Preencher cadastro".
+- Coberto por `test/licenseValidation.test.js`. **Fase 3 + 4 conectadas:** OCR → extração validada →
+  "Preencher cadastro" → `upsertFromExtract` persistido no backend.
+
 ## 7. Como rodar e testar
 
 ```bash
@@ -263,7 +295,9 @@ curl -s -X POST http://localhost:3333/api/ai/assist -H 'Content-Type: applicatio
 cd ../gml-react && npm install && npm run dev   # http://localhost:5173
 ```
 
-> **Nota de design:** o estado de domínio ainda é editado no frontend (onde o usuário cria licenças
-> via OCR, registra evidências, etc.) e é enviado ao backend a cada pergunta — assim **toda a
-> derivação de KPIs/contexto roda no servidor** (padrão BB) sem exigir, nesta fase, a migração
-> completa da camada de dados (Fase 3).
+> **Nota de design (pós-Fase 3):** o estado de domínio é a **fonte única no servidor**
+> (`environmental.repository.js`, persistido em `.data/`). O frontend hidrata dele e faz
+> write-through das mutações; o `/assist` lê dele. Assim a memória operacional sobrevive a refresh,
+> nova sessão e novo dispositivo, e **toda a derivação de KPIs/contexto roda no servidor** (padrão
+> BB). Para produção, trocar o store de arquivo por um banco real via `DATABASE_URL` é só
+> reimplementar a interface do repositório.

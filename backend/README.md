@@ -37,9 +37,12 @@ backend/
 │   │   └── license.service.js            # regra de negócio: leitura de licenças (OCR)
 │   ├── integrations/gemini/
 │   │   └── geminiClient.js       # cliente HTTP de baixo nível (timeout, retry)
-│   ├── repositories/             # persistência (conversas — em memória, plugável)
+│   ├── data/                     # seed.js — cenário inicial (espelha o data.js do front)
+│   ├── repositories/
+│   │   ├── environmental.repository.js   # FONTE ÚNICA do estado (persistida) — Fase 3
+│   │   └── conversation.repository.js    # histórico de conversa (em memória, plugável)
 │   ├── middlewares/              # auth, validação, upload, rate-limit, erros
-│   ├── models/                   # license.schema.js — schema + adaptação de saída
+│   ├── models/                   # license.schema.js + licenseValidation.js (Fase 4)
 │   └── utils/                    # logger, ApiError, ApiResponse, asyncHandler
 ├── .env.example
 ├── package.json
@@ -178,9 +181,35 @@ Resposta (`data.license`):
   "resumo": "Operação de terminal de granéis em Suape/PE...",
   "cond": [
     { "descricao": "Monitoramento mensal de efluentes", "periodicidade": "Mensal", "prazo": "05/06/2025", "risco": "Alto", "cor": "#DC3545" }
-  ]
+  ],
+  "validacao": { "ok": true, "avisos": [] }
 }
 ```
+
+> **Fase 4 — validação:** a saída do modelo passa por `validateAndNormalizeLicense` antes de virar
+> cadastro (datas → `DD/MM/AAAA`, órgão canônico, nº de processo no formato, periodicidade canônica,
+> enums). Qualquer ajuste/inconsistência aparece em `validacao.avisos` — a IA nunca é confiada cegamente.
+
+### Estado ambiental — `GET/POST/PATCH/DELETE/PUT /api/environmental/*` ⭐ (Fase 3)
+Fonte **única de verdade** no servidor (licenças, demandas, evidências), **persistida** e semeada no
+1º acesso. O frontend hidrata daqui e faz write-through; o assistente lê deste estado.
+
+| Método | Rota | Função |
+|---|---|---|
+| `GET` | `/api/environmental/state` | Estado completo `{ licencas, demandas, evidencias }` |
+| `POST` | `/api/environmental/licencas` | Cria/atualiza licença (por `id`) |
+| `PATCH` | `/api/environmental/licencas/:id` | Atualização parcial |
+| `DELETE` | `/api/environmental/licencas/:id` | Remove |
+| `POST` | `/api/environmental/licencas/extract-upsert` | Cadastra a partir de uma extração OCR |
+| `PUT` | `/api/environmental/demandas` | Substitui a coleção de demandas |
+| `PUT` | `/api/environmental/evidencias` | Substitui a coleção de evidências |
+
+```bash
+curl http://localhost:3333/api/environmental/state            # estado persistido
+```
+
+> Persistência em `./.data/environmental-state.json` (ignorado no git). Para um banco real, defina
+> `DATABASE_URL` e reimplemente a interface de `repositories/environmental.repository.js`.
 
 ### `POST /api/ai/licenses/extract-text`
 Mesma extração, a partir de **texto bruto** (campo `text`) — útil quando o OCR é
