@@ -18,17 +18,9 @@
 // ============================================================
 import ExcelJS from 'exceljs';
 import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import env from '../config/env.js';
 
 export const REGISTRY_SHEET = 'Licenças e Autorizações';
-
-// Template do cliente embarcado (usado por padrão quando SPREADSHEET_TEMPLATE
-// não é definido). Resolvido por caminho absoluto (independe do CWD).
-const DEFAULT_TEMPLATE = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)), '..', 'templates', 'controle-licencas-gml-2026.xlsx',
-);
 
 // Cabeçalhos do controle do cliente (linha 2), na ordem das colunas B..AD.
 export const REGISTRY_HEADERS = [
@@ -164,12 +156,19 @@ function buildFresh(licencas) {
   return wb;
 }
 
-/** Gera o workbook a partir do estado (template real se configurado, senão limpo). */
+/** Gera o workbook a partir do estado.
+ *
+ * Por padrão usa o caminho LIMPO (buildFresh): um workbook autorado do zero pelo
+ * ExcelJS, que o Excel abre sem pedir "reparo". O caminho TEMPLATE (reescrever o
+ * .xlsx real do cliente) é OPT-IN via env SPREADSHEET_TEMPLATE — empiricamente o
+ * round-trip do ExcelJS sobre o template do cliente (com drawings/VML/comentários/
+ * validações) gera relacionamentos que o Excel considera inválidos e "repara",
+ * descartando o conteúdo. Como prioridade é a planilha SAIR PREENCHIDA e abrir
+ * sem reparo, o build limpo é o default; quem tiver um template que round-trip
+ * corretamente pode habilitá-lo apontando SPREADSHEET_TEMPLATE. */
 export async function gerarWorkbook(state = {}) {
   const licencas = state.licencas || [];
-  // Usa o template configurado ou o embarcado por padrão; sempre cai no modo
-  // limpo se o arquivo não existir/estiver ilegível (degradação graciosa).
-  const tpl = env.spreadsheetTemplate || DEFAULT_TEMPLATE;
+  const tpl = env.spreadsheetTemplate; // opt-in explícito (não usa o embarcado por padrão)
   if (tpl && fs.existsSync(tpl)) {
     try { return await fillTemplate(licencas, tpl); }
     catch { /* template ilegível → cai no modo limpo */ }

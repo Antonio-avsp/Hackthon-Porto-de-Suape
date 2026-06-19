@@ -1,10 +1,18 @@
-// Testes da geração da Planilha de Controle (.xlsx) — modo TEMPLATE (padrão).
+// Testes da geração da Planilha de Controle (.xlsx) — modo TEMPLATE (opt-in).
 // Lê o resultado de volta com exceljs e valida o mapeamento por cabeçalho e a
 // preservação dos dados/abas do cliente. (Sem rede; usa o template embarcado.)
+// Import dinâmico: SPREADSHEET_TEMPLATE precisa estar setado antes de o env
+// (congelado no load) ser lido — habilita explicitamente o caminho de template.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import ExcelJS from 'exceljs';
-import { gerarBuffer, REGISTRY_SHEET } from '../src/services/spreadsheet.service.js';
+
+process.env.SPREADSHEET_TEMPLATE = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)), '..', 'src', 'templates', 'controle-licencas-gml-2026.xlsx',
+);
+const { gerarBuffer, REGISTRY_SHEET } = await import('../src/services/spreadsheet.service.js');
 
 const norm = (s) => String(s || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
 
