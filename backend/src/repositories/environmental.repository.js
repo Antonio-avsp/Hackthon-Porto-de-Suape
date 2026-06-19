@@ -102,10 +102,20 @@ export function deleteLicenca(id) {
  */
 export function upsertFromExtract(d = {}) {
   const s = ensure();
-  const cond = (d.cond || []).map((c) => ({ nome: c.descricao || c.nome, per: c.periodicidade || c.per, prog: 0, st: 'pendente' }));
+  // Preserva prazo/risco/status das condicionantes (alimentam as colunas
+  // EXIGÊNCIAS, PRAZO PARA CUMPRIMENTO e CUMPRIMENTO da planilha de controle).
+  const cond = (d.cond || []).map((c) => ({
+    nome: c.descricao || c.nome,
+    per: c.periodicidade || c.per,
+    prazo: c.prazo || c.prazoCond || '',
+    risco: c.risco || '',
+    prog: c.prog || 0,
+    st: c.st || 'pendente',
+  }));
   // Campos derivados do documento que alimentam a planilha de controle.
   const derivados = {
-    numero: d.numero, protocolo: d.protocolo, dataEmissao: d.dataEmissao, objeto: d.objeto,
+    numero: d.numero, protocolo: d.protocolo, dataSolicitacao: d.dataSolicitacao,
+    dataProtocolo: d.dataProtocolo, dataEmissao: d.dataEmissao, objeto: d.objeto,
     endereco: d.endereco, municipio: d.municipio, cep: d.cep, cnpjCpf: d.cnpjCpf,
     localizacao: d.localizacao, descricao: d.descricao, resumo: d.resumo,
   };

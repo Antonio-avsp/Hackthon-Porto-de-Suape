@@ -23,6 +23,7 @@ const EXTRACTION_PROMPT =
   'o número da licença/autorização (campo "numero"); o número do processo administrativo (campo "processo"); ' +
   'o número de protocolo/solicitação (protocolo); o objeto/empreendimento ou razão social (objeto); ' +
   'o endereço/logradouro (endereco); o município e UF (municipio); o CEP (cep); o CNPJ ou CPF do empreendedor/requerente (cnpj_cpf); ' +
+  'a data da solicitação/requerimento (data_solicitacao); a data do protocolo (data_protocolo); ' +
   'a data de emissão (data_emissao) e a data de validade (validade); ' +
   'uma classificação de risco geral (Baixo, Médio ou Alto); um resumo de uma frase; ' +
   'e todas as condicionantes (descrição, periodicidade, prazo e risco). Datas no formato DD/MM/AAAA. ' +

@@ -46,11 +46,21 @@ const limpo = (v) => (v && v !== '—' ? String(v) : '');
 
 /** Valores a escrever, indexados pelo NOME normalizado do cabeçalho. */
 function valoresPorCabecalho(l) {
-  const cond = (l.cond || []).map((c) => c.nome).filter(Boolean).join('; ');
+  const conds = l.cond || [];
+  // Listas das condicionantes (mesma ordem) → colunas EXIGÊNCIAS / PRAZO / CUMPRIMENTO.
+  const exigencias = conds.map((c) => c.nome).filter(Boolean).join('; ');
+  const prazos = conds.map((c) => limpo(c.prazo)).filter(Boolean).join('; ');
+  const cumprimento = conds.map((c) => STATUS_LABEL[c.st] || c.st).filter(Boolean).join('; ');
+  // Andamento global = média do progresso das condicionantes.
+  const andamento = conds.length
+    ? Math.round(conds.reduce((a, c) => a + (c.prog || 0), 0) / conds.length) + '%'
+    : '';
+  // Responsável + ponto focal (área/contratada).
+  const responsavel = [limpo(l.resp), limpo(l.respDet)].filter(Boolean).join(' · ');
   // Endereço completo → coluna LOCALIZAÇÃO (endereço · município · CEP).
   const localizacao = [limpo(l.endereco), limpo(l.municipio), l.cep && l.cep !== '—' ? `CEP ${l.cep}` : '']
     .filter(Boolean).join(' · ') || limpo(l.localizacao);
-  // CNPJ/CPF, protocolo e resumo → coluna OBSERVAÇÃO (não há colunas dedicadas).
+  // CNPJ/CPF e resumo → coluna OBSERVAÇÃO (não há colunas dedicadas).
   const observacao = [
     l.cnpjCpf && l.cnpjCpf !== '—' ? `CNPJ/CPF: ${l.cnpjCpf}` : '',
     l.protocolo && l.protocolo !== '—' ? `Protocolo: ${l.protocolo}` : '',
@@ -61,12 +71,20 @@ function valoresPorCabecalho(l) {
     'tipo de licenciamento': l.sigla || '',
     'localizacao': localizacao,
     'descricao do empreendimento/ obra': limpo(l.descricao) || limpo(l.resumo),
+    'n o da solicitacao silia': limpo(l.protocolo),
     'n° do processo': limpo(l.processo),
+    'data da solicitacao': limpo(l.dataSolicitacao),
+    'data do protocolo': limpo(l.dataProtocolo),
+    'exigencias': exigencias,
+    'prazo para cumprimento de exigencia': prazos,
+    'cumprimento': cumprimento,
+    'andamento': andamento,
     'status': STATUS_LABEL[l.status] || l.status || '',
     'n° da licenca/autorizacao': limpo(l.numero) || l.id || '',
     'data da emissao': limpo(l.dataEmissao),
     'validade': limpo(l.validade),
-    'exigencias (condicionante)': cond,
+    'responsavel/ ponto focal': responsavel,
+    'exigencias (condicionante)': exigencias,
     'observacao': observacao,
   };
 }
@@ -132,27 +150,59 @@ async function fillTemplate(licencas, templatePath) {
   return wb;
 }
 
+// Largura (em caracteres) por cabeçalho normalizado — colunas com texto longo
+// ficam mais largas para a planilha não sair "cortada". Default p/ as demais.
+const COL_WIDTHS = {
+  'objeto': 26, 'tipo de licenciamento': 16, 'localizacao': 36,
+  'descricao do empreendimento/ obra': 40, 'area demandante': 18,
+  'n o da solicitacao silia': 18, 'n° do processo': 18, 'oficio suape': 16,
+  'data da solicitacao': 16, 'data do protocolo': 16, 'exigencias': 42,
+  'prazo para cumprimento de exigencia': 22, 'cumprimento': 22,
+  'evidencia do cumprimento': 22, 'andamento': 13, 'status': 14,
+  'n° da licenca/autorizacao': 20, 'data da emissao': 15, 'validade': 14,
+  'responsavel/ ponto focal': 24, 'exigencias (condicionante)': 42, 'observacao': 44,
+};
+const DEFAULT_WIDTH = 16;
+
 /** Caminho LIMPO: monta um workbook do zero com o mesmo layout de colunas. */
 function buildFresh(licencas) {
   const wb = new ExcelJS.Workbook();
   wb.creator = 'A.L.I.A';
   const ws = wb.addWorksheet(REGISTRY_SHEET, { views: [{ state: 'frozen', ySplit: 2 }] });
-  ws.mergeCells(1, FIRST_COL, 1, FIRST_COL + 12);
+  const lastCol = FIRST_COL + REGISTRY_HEADERS.length - 1;
+
+  // Título mesclado sobre TODAS as colunas de dados.
+  ws.mergeCells(1, FIRST_COL, 1, lastCol);
   ws.getCell(1, FIRST_COL).value = 'MONITORAMENTO DOS PROCESSOS — Controle de Licenças (gerado pela A.L.I.A)';
   ws.getCell(1, FIRST_COL).font = { bold: true, size: 13 };
+  ws.getCell(1, FIRST_COL).alignment = { vertical: 'middle' };
+  ws.getRow(1).height = 22;
+
+  // Cabeçalho (linha 2) — largura e altura suficientes p/ exibir o texto inteiro.
   REGISTRY_HEADERS.forEach((h, i) => {
-    const cell = ws.getCell(2, FIRST_COL + i);
+    const col = FIRST_COL + i;
+    const cell = ws.getCell(2, col);
     cell.value = h;
     cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
     cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E60AD' } };
-    cell.alignment = { wrapText: true, vertical: 'middle' };
+    cell.alignment = { wrapText: true, vertical: 'middle', horizontal: 'center' };
+    ws.getColumn(col).width = COL_WIDTHS[norm(h)] || DEFAULT_WIDTH;
   });
+  ws.getRow(2).height = 44; // acomoda cabeçalhos de 2 linhas sem cortar
+
   ws.getCell(3, FIRST_COL).value = 'PROCESSOS EM ANDAMENTO';
   ws.getCell(3, FIRST_COL).font = { bold: true };
+
   const mapa = mapaColunas(ws, 2);
   let rowIdx = 4;
-  for (const l of licencas) escreverLinha(ws, rowIdx++, valoresPorCabecalho(l), mapa);
-  ws.columns.forEach((c) => { c.width = Math.min(28, Math.max(12, (c.width || 14))); });
+  for (const l of licencas) {
+    escreverLinha(ws, rowIdx, valoresPorCabecalho(l), mapa);
+    // Alinhamento das células de dados: quebra de texto e alinhamento ao topo.
+    for (let col = FIRST_COL; col <= lastCol; col++) {
+      ws.getRow(rowIdx).getCell(col).alignment = { wrapText: true, vertical: 'top' };
+    }
+    rowIdx += 1;
+  }
   return wb;
 }
 
