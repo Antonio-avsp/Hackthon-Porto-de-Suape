@@ -50,9 +50,12 @@ function ExtractCard({ d, onFill, onExcel, fillLabel = 'Preencher cadastro de li
 }
 
 const STORAGE_KEY = 'gml_chat_messages';
+const CONV_ID_KEY = 'gml_conv_id';
 
 let mid = 0;
 const nid = () => ++mid;
+
+const stripHtml = (html) => (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
 // Carrega o histórico salvo (descartando mensagens transitórias de "digitando")
 // e avança o contador de ids para evitar colisões após recarregar a página.
@@ -72,9 +75,11 @@ export default function AssistenteIA() {
   const [messages, setMessages] = useState(loadMessages);
   const [attachments, setAttachments] = useState([]);
   const [text, setText] = useState('');
+  const [sending, setSending] = useState(false);
   const fileRef = useRef(null);
   const msgsRef = useRef(null);
   const taRef = useRef(null);
+  const convIdRef = useRef(localStorage.getItem(CONV_ID_KEY) || null);
 
   const append = useCallback((m) => setMessages((x) => [...x, { _id: nid(), ...m }]), []);
   const popTyping = useCallback(() => setMessages((x) => x.filter((m) => !m.typing)), []);
@@ -119,17 +124,21 @@ export default function AssistenteIA() {
     }
   }, [reloadState, toast, append]);
 
-  // Conversa contextual (backend-centric, espelha o Consultor IA do BB):
-  // 1) envia o ESTADO REAL ao backend, que roda intenção determinística +
-  //    contexto + modelo e devolve a resposta estruturada;
-  // 2) se o backend estiver offline, cai no responderLocal (mesmos dados reais).
-  async function sendChat(prompt) {
-    const history = messages
-      .filter((m) => (m.role === 'user' || m.role === 'bot') && typeof m.text === 'string' && m.text)
-      .map((m) => ({ role: m.role === 'bot' ? 'assistant' : 'user', text: m.text }));
+  // Conversa contextual (backend-centric):
+  // 1) envia histórico completo (texto + html stripado) para manter contexto;
+  // 2) mantém conversationId entre turnos para memória no backend;
+  // 3) se o backend estiver offline, cai no responderLocal.
+  async function sendChat(prompt, currentMessages) {
+    const history = (currentMessages || messages)
+      .filter((m) => (m.role === 'user' || m.role === 'bot') && (m.text || m.html))
+      .map((m) => ({ role: m.role === 'bot' ? 'assistant' : 'user', text: m.text || stripHtml(m.html) }));
     append({ typing: true });
     try {
-      const data = await assistAI(prompt, history);
+      const data = await assistAI(prompt, history, convIdRef.current);
+      if (data.conversationId) {
+        convIdRef.current = data.conversationId;
+        try { localStorage.setItem(CONV_ID_KEY, data.conversationId); } catch { /* ignora */ }
+      }
       popTyping();
       append({ role: 'bot', text: data.resposta, assist: data });
     } catch (err) {
@@ -146,8 +155,8 @@ export default function AssistenteIA() {
     }
   }
 
-  async function simulateExtraction(filename) {
-    append({ role: 'user', text: 'Leia esta licença de exemplo e cadastre para mim.', file: filename });
+  async function simulateExtraction(filename, userText = '') {
+    append({ role: 'user', text: userText || 'Leia esta licença de exemplo e cadastre para mim.', file: filename });
     append({ typing: true });
     await sleep(1300);
     popTyping();
@@ -159,8 +168,8 @@ export default function AssistenteIA() {
   // AUTOMAÇÃO (anexar → ler → validar → planilha): chama /ingest. Se a validação
   // passar limpa, o backend JÁ cadastra na fonte única (que gera a planilha);
   // havendo avisos, pede confirmação de 1 clique.
-  async function processDocument(file) {
-    append({ role: 'user', text: 'Leia esta licença e cadastre para mim.', file: file.name });
+  async function processDocument(file, userText = '') {
+    append({ role: 'user', text: userText || 'Leia esta licença e cadastre para mim.', file: file.name });
     append({ typing: true });
     try {
       const res = await ingestLicense(file);
@@ -195,24 +204,34 @@ export default function AssistenteIA() {
 
   // Faz uma pergunta pronta (sugestões) — passa pelo roteador contextual.
   async function askNow(q) {
+    const snapshot = [...messages, { _id: nid(), role: 'user', text: q }];
     append({ role: 'user', text: q });
-    await sendChat(q);
+    await sendChat(q, snapshot);
   }
 
   async function doSend() {
-    if (attachments.length) {
-      const f = attachments[0];
-      setAttachments([]);
+    if (sending) return;
+    setSending(true);
+    try {
+      if (attachments.length) {
+        const f = attachments[0];
+        const userText = text.trim();
+        setAttachments([]);
+        setText('');
+        if (taRef.current) taRef.current.style.height = 'auto';
+        return await processDocument(f, userText);
+      }
+      const t = text.trim();
+      if (!t) return;
       setText('');
       if (taRef.current) taRef.current.style.height = 'auto';
-      return processDocument(f);
+      // Captura o estado atual das mensagens para montar o histórico correto
+      const snapshot = [...messages, { _id: nid(), role: 'user', text: t }];
+      append({ role: 'user', text: t });
+      await sendChat(t, snapshot);
+    } finally {
+      setSending(false);
     }
-    const t = text.trim();
-    if (!t) return;
-    setText('');
-    if (taRef.current) taRef.current.style.height = 'auto';
-    append({ role: 'user', text: t });
-    await sendChat(t);
   }
 
   const onPick = (e) => {
@@ -228,7 +247,7 @@ export default function AssistenteIA() {
       <div className="ai-wrap">
         <div className="ai-hist">
           <div className="nh">
-            <button className="btn btn-primary btn-sm" style={{ width: '100%' }} onClick={() => { setMessages([]); setAttachments([]); }}><Icon name="plus" /> Nova conversa</button>
+            <button className="btn btn-primary btn-sm" style={{ width: '100%' }} onClick={() => { setMessages([]); setAttachments([]); convIdRef.current = null; try { localStorage.removeItem(CONV_ID_KEY); } catch { /* ignora */ } }}><Icon name="plus" /> Nova conversa</button>
             <button className="btn btn-ghost btn-sm" style={{ width: '100%', marginTop: 6 }} onClick={baixarControle}><Icon name="excel" /> Baixar planilha de controle</button>
           </div>
           <div style={{ padding: '8px 4px', flex: 1, overflow: 'auto' }}>
@@ -323,7 +342,7 @@ export default function AssistenteIA() {
                 onChange={(e) => { setText(e.target.value); e.target.style.height = 'auto'; e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'; }}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); } }}
               />
-              <button className="send" title="Enviar" onClick={doSend}><Icon name="send" /></button>
+              <button className="send" title="Enviar" onClick={doSend} disabled={sending} style={sending ? { opacity: 0.5, cursor: 'not-allowed' } : {}}><Icon name="send" /></button>
             </div>
           </div>
         </div>

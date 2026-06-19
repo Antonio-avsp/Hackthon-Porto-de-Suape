@@ -123,13 +123,13 @@ export async function downloadControle() {
  * @param {Array<{role:string,text:string}>} [history]
  * @returns {Promise<{resposta:string,destaques:string[],acao_sugerida:string,intencao:string,fonte:string,kpis:object,score:object}>}
  */
-export async function assistAI(prompt, history = []) {
+export async function assistAI(prompt, history = [], conversationId = null) {
   let resp;
   try {
     resp = await fetch(`${getApiBase()}/api/ai/assist`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, history }),
+      body: JSON.stringify({ prompt, history, ...(conversationId ? { conversationId } : {}) }),
     });
   } catch {
     throw connectionError();
