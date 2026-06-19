@@ -75,7 +75,10 @@ HTTP; o *client* não conhece regra de negócio. Trocar de modelo/provedor exige
    | `GEMINI_TIMEOUT_MS` | Timeout das chamadas à IA                              | `30000`                   |
    | `GEMINI_MAX_RETRIES`| Retentativas em erro transitório                       | `2`                       |
    | `API_KEY`           | (Opcional) protege as rotas via header `x-api-key`     | —                         |
-   | `DATABASE_URL`      | (Placeholder) reservado para persistência futura       | —                         |
+   | `SPREADSHEET_TEMPLATE` | Caminho do template `.xlsx` do cliente (Fase 5). Vazio → usa o template embarcado; inexistente → planilha limpa | template embarcado |
+   | `REFERENCE_DATE`    | Data de referência do cenário (âncora dos prazos)      | `12/06/2025`              |
+   | `ALIA_DATA_FILE`    | Caminho do estado persistido (Fase 3). `:memory:` em testes | `.data/environmental-state.json` |
+   | `DATABASE_URL`      | Conexão do banco (Supabase Postgres recomendado). Em produção no Render, use um banco — o disco é efêmero | —      |
 
 [key]: https://aistudio.google.com/app/apikey
 
@@ -211,6 +214,28 @@ curl http://localhost:3333/api/environmental/state            # estado persistid
 > Persistência em `./.data/environmental-state.json` (ignorado no git). Para um banco real, defina
 > `DATABASE_URL` e reimplemente a interface de `repositories/environmental.repository.js`.
 
+### `POST /api/ai/licenses/ingest` ⭐ (automação: anexar → ler → planilha)
+Extrai do arquivo, **valida** (Fase 4) e, se passar **limpo**, **já cadastra** na fonte única
+(que alimenta a planilha) — sem trabalho manual. Havendo avisos, devolve para **revisão de 1 clique**.
+
+```bash
+curl -X POST http://localhost:3333/api/ai/licenses/ingest -F "file=@licenca.pdf"
+# → { status: "ingested"|"review", autoCommitted, license, validacao, source }
+```
+
+### `POST /api/ai/licenses/ingest/confirm`
+Grava a licença revisada (1 clique) quando houve avisos. Body: `{ "license": { ... } }`.
+
+### `GET /api/spreadsheet/controle.xlsx` ⭐
+Baixa a **Planilha de Controle preenchida** a partir do estado real. Usa o template do cliente
+como base (preservando abas, fórmulas e dados existentes) e **anexa** as licenças num bloco
+rotulado, mapeando cada campo para a **coluna certa por cabeçalho**. Sem template válido, gera uma
+planilha limpa com o mesmo layout de colunas.
+
+> **Por que não escrevemos no arquivo do cliente "in-place"?** Testamos: reabrir/reescrever o
+> workbook original corrompe a formatação condicional (o Excel pede "reparar"). Por isso a saída é
+> sempre uma **cópia gerada** (append-only, nunca sobrescreve dados) — o arquivo-mestre permanece intacto.
+
 ### `POST /api/ai/licenses/extract-text`
 Mesma extração, a partir de **texto bruto** (campo `text`) — útil quando o OCR é
 feito antes.
@@ -252,6 +277,18 @@ Defina `CORS_ORIGIN=http://localhost:5173` no `.env` para liberar o Vite.
 - **Chave da IA só no servidor** — nunca exposta ao navegador.
 - Autenticação opcional por `x-api-key` (ative definindo `API_KEY`).
 - Upload limitado a 15 MB e a tipos PDF/imagem.
+
+## 🚀 Deploy (Render + Vercel/GitHub Pages)
+
+- **Disco efêmero no Render:** o estado em `.data/` **não sobrevive** a deploy/restart. Em produção,
+  defina `DATABASE_URL` (Supabase Postgres) — a interface do repositório
+  (`repositories/environmental.repository.js`) foi desenhada para trocar a persistência sem mexer
+  no resto. A planilha continua sendo uma **projeção** desse estado (gerada sob demanda).
+- **CORS:** defina `CORS_ORIGIN` com a origem exata do front (`https://seu-app.vercel.app` ou
+  `https://usuario.github.io`). É o erro nº 1 ao publicar.
+- **Segredos** (`GEMINI_API_KEY`, `DATABASE_URL`) só no Render, nunca no front.
+- **Cold start:** o serviço free hiberna após ~15 min; a 1ª chamada pode levar ~30–60s — o front já
+  trata erros de conexão com fallback.
 
 ## 🧪 Testes
 

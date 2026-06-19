@@ -4,7 +4,7 @@ import { Sigla, Dot } from '../ui.jsx';
 import { tipoCor } from '../data.js';
 import { useStore } from '../store.jsx';
 import { buildSampleExtract, exportExcel, sleep } from '../lib/ai.js';
-import { extractLicense, assistAI } from '../lib/api.js';
+import { assistAI, ingestLicense, confirmIngest, downloadControle } from '../lib/api.js';
 import { flattenCondicionantes, responderLocal } from '../lib/insights.js';
 
 const HIST = [
@@ -13,7 +13,7 @@ const HIST = [
   { t: 'LI Terminal de granéis', s: '12 mai' },
 ];
 
-function ExtractCard({ d, onFill, onExcel }) {
+function ExtractCard({ d, onFill, onExcel, fillLabel = 'Preencher cadastro de licença', excelLabel = 'Exportar para Excel' }) {
   return (
     <div className="extract">
       <div className="eh"><Icon name="spark" /><div><b style={{ fontSize: 13.5 }}>Licença interpretada</b><div style={{ fontSize: 11.5, opacity: .85 }}>Extração automática concluída</div></div></div>
@@ -32,8 +32,8 @@ function ExtractCard({ d, onFill, onExcel }) {
         </div>
       </div>
       <div className="ecard-acts">
-        <button className="btn btn-primary btn-sm" onClick={onFill}><Icon name="check" /> Preencher cadastro de licença</button>
-        <button className="btn btn-ghost btn-sm" onClick={onExcel}><Icon name="excel" /> Exportar para Excel</button>
+        <button className="btn btn-primary btn-sm" onClick={onFill}><Icon name="check" /> {fillLabel}</button>
+        <button className="btn btn-ghost btn-sm" onClick={onExcel}><Icon name="excel" /> {excelLabel}</button>
       </div>
     </div>
   );
@@ -58,7 +58,7 @@ function loadMessages() {
 }
 
 export default function AssistenteIA() {
-  const { upsertFromExtract, setScreen, toast, licencas, demandas, evidencias } = useStore();
+  const { upsertFromExtract, reloadState, setScreen, toast, licencas, demandas, evidencias } = useStore();
   const [messages, setMessages] = useState(loadMessages);
   const [attachments, setAttachments] = useState([]);
   const [text, setText] = useState('');
@@ -86,6 +86,28 @@ export default function AssistenteIA() {
     append({ role: 'bot', html: `Pronto! Atualizei o cadastro da licença <b>${id || d.sigla}</b> com ${d.cond.length} condicionantes. Abrindo a aba <b>Licenças</b>…` });
     setTimeout(() => setScreen('licencas'), 800);
   }, [upsertFromExtract, toast, append, setScreen]);
+
+  // Baixa a planilha de controle (.xlsx) gerada pelo backend a partir do estado real.
+  const baixarControle = useCallback(async () => {
+    try {
+      await downloadControle();
+      toast('Planilha de controle gerada ✓');
+    } catch {
+      toast('Não foi possível baixar a planilha (backend offline?)');
+    }
+  }, [toast]);
+
+  // Caso de REVISÃO (houve avisos): grava com 1 clique e re-sincroniza o estado.
+  const confirmarCadastro = useCallback(async (d) => {
+    try {
+      await confirmIngest(d);
+      await reloadState();
+      toast('Licença cadastrada ✓');
+      append({ role: 'bot', html: `Cadastrei a licença <b>${d.numero || d.sigla}</b> e atualizei a planilha de controle. Você já pode <b>baixá-la</b>.` });
+    } catch {
+      toast('Falha ao confirmar o cadastro');
+    }
+  }, [reloadState, toast, append]);
 
   // Conversa contextual (backend-centric, espelha o Consultor IA do BB):
   // 1) envia o ESTADO REAL ao backend, que roda intenção determinística +
@@ -124,18 +146,27 @@ export default function AssistenteIA() {
     append({ role: 'bot', html: 'Posso <b>preencher o cadastro</b> ou <b>exportar para Excel</b>. Para ler um <b>arquivo real</b> (PDF/imagem), anexe-o com 📎 — o <b>backend GML</b> faz a leitura via IA.' });
   }
 
+  // AUTOMAÇÃO (anexar → ler → validar → planilha): chama /ingest. Se a validação
+  // passar limpa, o backend JÁ cadastra na fonte única (que gera a planilha);
+  // havendo avisos, pede confirmação de 1 clique.
   async function processDocument(file) {
     append({ role: 'user', text: 'Leia esta licença e cadastre para mim.', file: file.name });
     append({ typing: true });
     try {
-      const d = await extractLicense(file);
+      const res = await ingestLicense(file);
       popTyping();
-      append({ role: 'bot', html: `Li o arquivo <b>${file.name}</b> via backend (IA) e identifiquei uma <b>${d.tipo}</b> do órgão <b>${d.orgao}</b>. Dados extraídos:` });
-      append({ extract: d });
-      // Fase 4: avisos da validação/normalização automática (texto puro, anti-XSS).
-      const avisos = (d.validacao && d.validacao.avisos) || [];
+      const d = res.license;
+      const committed = res.status === 'ingested';
+      append({
+        role: 'bot',
+        html: committed
+          ? `Li <b>${file.name}</b>, identifiquei uma <b>${d.tipo}</b> da <b>${d.orgao}</b> e <b>cadastrei automaticamente</b> na planilha de controle. ✅`
+          : `Li <b>${file.name}</b> (<b>${d.tipo}</b> / <b>${d.orgao}</b>). Antes de cadastrar, confira os pontos sinalizados:`,
+      });
+      append({ ingest: { license: d, committed } });
+      const avisos = (res.validacao && res.validacao.avisos) || [];
       if (avisos.length) append({ role: 'bot', text: '⚠️ Validação automática: ' + avisos.join(' · ') });
-      append({ role: 'bot', html: 'Posso <b>preencher o cadastro</b> automaticamente ou <b>exportar para Excel</b> — é só clicar acima. ✅' });
+      if (committed) await reloadState();
     } catch (err) {
       popTyping();
       if (err && err.connection) {
@@ -188,6 +219,7 @@ export default function AssistenteIA() {
         <div className="ai-hist">
           <div className="nh">
             <button className="btn btn-primary btn-sm" style={{ width: '100%' }} onClick={() => { setMessages([]); setAttachments([]); }}><Icon name="plus" /> Nova conversa</button>
+            <button className="btn btn-ghost btn-sm" style={{ width: '100%', marginTop: 6 }} onClick={baixarControle}><Icon name="excel" /> Baixar planilha de controle</button>
           </div>
           <div style={{ padding: '8px 4px', flex: 1, overflow: 'auto' }}>
             <div className="ai-conv on">Conversa atual<small>Assistente de licenças</small></div>
@@ -218,6 +250,23 @@ export default function AssistenteIA() {
               if (m.extract) return (
                 <div className="msg bot" key={m._id}><div className="ava" style={{ background: 'linear-gradient(135deg,#356bbd,#234E91)' }}>IA</div><div className="bub" style={{ padding: 0, background: 'transparent', border: 0, boxShadow: 'none' }}><ExtractCard d={m.extract} onFill={() => fillCadastro(m.extract)} onExcel={() => { exportExcel(m.extract); toast('Planilha Excel gerada ✓'); }} /></div></div>
               );
+              if (m.ingest) {
+                const { license: d, committed } = m.ingest;
+                return (
+                  <div className="msg bot" key={m._id}>
+                    <div className="ava" style={{ background: 'linear-gradient(135deg,#356bbd,#234E91)' }}>IA</div>
+                    <div className="bub" style={{ padding: 0, background: 'transparent', border: 0, boxShadow: 'none' }}>
+                      <ExtractCard
+                        d={d}
+                        fillLabel={committed ? 'Ver na aba Licenças' : 'Confirmar e cadastrar'}
+                        onFill={() => (committed ? setScreen('licencas') : confirmarCadastro(d))}
+                        excelLabel="Baixar planilha de controle (.xlsx)"
+                        onExcel={baixarControle}
+                      />
+                    </div>
+                  </div>
+                );
+              }
               if (m.assist) return (
                 <div className="msg bot" key={m._id}>
                   <div className="ava" style={{ background: 'linear-gradient(135deg,#356bbd,#234E91)' }}>IA</div>

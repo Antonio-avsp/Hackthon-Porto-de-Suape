@@ -84,6 +84,13 @@ export function validateAndNormalizeLicense(license = {}) {
     avisos.push(`Nº de processo "${out.processo}" fora do formato esperado (ex.: 2023.045.PE) — confirme.`);
   }
 
+  // Data de emissão (quando presente)
+  if (out.dataEmissao && out.dataEmissao !== '—') {
+    const em = normalizeDate(out.dataEmissao);
+    if (!em.valid) avisos.push(`Data de emissão "${out.dataEmissao}" inválida — confira.`);
+    else { if (em.changed) avisos.push(`Data de emissão normalizada para ${em.value}.`); out.dataEmissao = em.value; }
+  }
+
   // Validade (data) + coerência com a data de referência
   const val = normalizeDate(out.validade);
   if (out.validade && out.validade !== '—' && !val.valid) {

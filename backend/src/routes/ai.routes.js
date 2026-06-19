@@ -22,6 +22,12 @@ router.post('/chat', validateChat, aiController.chat);
 // POST /api/ai/licenses/extract  (multipart/form-data, campo "file")
 router.post('/licenses/extract', uploadLicenseFile, requireFile, aiController.extractLicenseFile);
 
+// POST /api/ai/licenses/ingest  — AUTOMAÇÃO: extrai, valida e cadastra (auto se limpo)
+router.post('/licenses/ingest', uploadLicenseFile, requireFile, aiController.ingestLicenseFile);
+
+// POST /api/ai/licenses/ingest/confirm  — grava a licença revisada (1 clique)
+router.post('/licenses/ingest/confirm', aiController.confirmLicenseIngest);
+
 // POST /api/ai/licenses/extract-text  (application/json, campo "text")
 router.post('/licenses/extract-text', validateLicenseText, aiController.extractLicenseText);
 

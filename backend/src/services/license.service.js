@@ -18,9 +18,11 @@ const SYSTEM_INSTRUCTION =
 
 const EXTRACTION_PROMPT =
   'Leia esta licença ambiental brasileira e extraia os dados de forma fiel ao documento. ' +
-  `Identifique a sigla do tipo (uma de: ${SIGLAS_VALIDAS.join(', ')}), o órgão emissor, ` +
-  'o número do processo, a data de validade, uma classificação de risco geral (Baixo, Médio ou Alto), ' +
-  'um resumo de uma frase e todas as condicionantes (descrição, periodicidade, prazo e risco). ' +
+  `Identifique: a sigla do tipo (uma de: ${SIGLAS_VALIDAS.join(', ')}); o órgão emissor; ` +
+  'o número da licença/autorização (campo "numero"); o número do processo administrativo (campo "processo"); ' +
+  'a data de emissão (data_emissao) e a data de validade; o objeto/empreendimento e a localização; ' +
+  'uma classificação de risco geral (Baixo, Médio ou Alto); um resumo de uma frase; ' +
+  'e todas as condicionantes (descrição, periodicidade, prazo e risco). Datas no formato DD/MM/AAAA. ' +
   'Se algum campo não constar no documento, retorne "—". Responda apenas com os dados estruturados.';
 
 export const licenseService = {

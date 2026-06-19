@@ -4,6 +4,7 @@
 // ============================================================
 import { success } from '../utils/ApiResponse.js';
 import asyncHandler from '../utils/asyncHandler.js';
+import ApiError from '../utils/ApiError.js';
 import geminiService from '../services/geminiService.js';
 import licenseService from '../services/license.service.js';
 import assistantService from '../services/assistant.service.js';
@@ -57,6 +58,40 @@ export const aiController = {
       mimeType: req.file.mimetype,
     });
     return success(res, { source: req.file.originalname, license: data });
+  }),
+
+  /**
+   * POST /api/ai/licenses/ingest — AUTOMAÇÃO Fase 5: extrai, valida e, se a
+   * validação passar LIMPA (sem avisos), cadastra automaticamente na fonte única
+   * (que alimenta a planilha). Havendo avisos, devolve para revisão de 1 clique.
+   */
+  ingestLicenseFile: asyncHandler(async (req, res) => {
+    const data = await licenseService.extractFromFile({
+      buffer: req.file.buffer,
+      mimeType: req.file.mimetype,
+    });
+    const limpo = !data.validacao || data.validacao.ok !== false;
+    if (limpo) {
+      const { created } = environmentalRepository.upsertFromExtract(data);
+      // Devolve a EXTRAÇÃO (formato rico p/ o card) + sinal de que já foi gravada.
+      return success(res, {
+        status: 'ingested', autoCommitted: true, created, license: data,
+        validacao: data.validacao, source: req.file.originalname,
+      });
+    }
+    // Há avisos → não grava; pede revisão (mostra extração + avisos no front).
+    return success(res, {
+      status: 'review', autoCommitted: false, license: data,
+      validacao: data.validacao, source: req.file.originalname,
+    });
+  }),
+
+  /** POST /api/ai/licenses/ingest/confirm — grava a licença revisada (1 clique). */
+  confirmLicenseIngest: asyncHandler(async (req, res) => {
+    const license = req.body?.license;
+    if (!license || !license.sigla) throw ApiError.badRequest('Envie a licença revisada em "license".');
+    const { license: saved, created } = environmentalRepository.upsertFromExtract(license);
+    return success(res, { status: 'ingested', autoCommitted: false, created, license: saved });
   }),
 
   /** POST /api/ai/licenses/extract-text — extrai dados de licença de texto bruto. */

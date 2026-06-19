@@ -25,8 +25,12 @@ export const LICENSE_RESPONSE_SCHEMA = {
     tipo: { type: 'string' },
     sigla: { type: 'string', enum: SIGLAS_VALIDAS },
     orgao: { type: 'string' },
-    processo: { type: 'string' },
+    numero: { type: 'string' },          // N° da licença/autorização
+    processo: { type: 'string' },        // N° do processo administrativo
+    data_emissao: { type: 'string' },    // Data de emissão
     validade: { type: 'string' },
+    objeto: { type: 'string' },          // Objeto / empreendimento
+    localizacao: { type: 'string' },     // Localização do empreendimento
     classificacao_risco: { type: 'string', enum: RISCOS_VALIDOS },
     resumo: { type: 'string' },
     condicionantes: {
@@ -57,7 +61,12 @@ export function adaptLicenseExtract(raw = {}) {
     sigla: SIGLAS_VALIDAS.includes(raw.sigla) ? raw.sigla : 'LO',
     tipo: raw.tipo || '—',
     orgao: raw.orgao || '—',
+    numero: raw.numero || '—',
     processo: raw.processo || '—',
+    dataEmissao: raw.data_emissao || '—',
+    objeto: raw.objeto || '—',
+    localizacao: raw.localizacao || '—',
+    descricao: raw.descricao || raw.resumo || '—',
     validade: raw.validade || '—',
     risco: RISCOS_VALIDOS.includes(raw.classificacao_risco) ? raw.classificacao_risco : '—',
     riscoCor: riskColor(raw.classificacao_risco),

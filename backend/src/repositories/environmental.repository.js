@@ -103,16 +103,21 @@ export function deleteLicenca(id) {
 export function upsertFromExtract(d = {}) {
   const s = ensure();
   const cond = (d.cond || []).map((c) => ({ nome: c.descricao || c.nome, per: c.periodicidade || c.per, prog: 0, st: 'pendente' }));
+  // Campos derivados do documento que alimentam a planilha de controle.
+  const derivados = {
+    numero: d.numero, dataEmissao: d.dataEmissao, objeto: d.objeto,
+    localizacao: d.localizacao, descricao: d.descricao, resumo: d.resumo,
+  };
   const i = s.licencas.findIndex((l) => l.processo === d.processo && l.sigla === d.sigla);
   if (i >= 0) {
-    s.licencas[i] = { ...s.licencas[i], cond };
+    s.licencas[i] = { ...s.licencas[i], ...derivados, cond };
     save();
     return { license: clone(s.licencas[i]), created: false };
   }
-  const id = d.sigla + '-' + String(d.processo || 'NOVA').replace(/\D/g, '').slice(0, 7);
+  const id = (d.sigla || 'LIC') + '-' + String(d.processo || d.numero || 'NOVA').replace(/\D/g, '').slice(0, 7);
   const novo = {
     id, sigla: d.sigla, orgao: d.orgao, processo: d.processo, validade: d.validade,
-    dias: 7, status: 'critica', resp: 'Equipes internas', respDet: 'IA', cond,
+    ...derivados, dias: 7, status: 'critica', resp: 'Equipes internas', respDet: 'IA', cond,
   };
   s.licencas.unshift(novo);
   save();
