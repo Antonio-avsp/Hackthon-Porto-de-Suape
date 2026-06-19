@@ -5,6 +5,7 @@ import { tipoCor } from '../data.js';
 import { useStore } from '../store.jsx';
 import { buildSampleExtract, exportExcel, sleep } from '../lib/ai.js';
 import { extractLicense, chatWithAI } from '../lib/api.js';
+import { flattenCondicionantes, buildContext, responderLocal } from '../lib/insights.js';
 
 const HIST = [
   { t: 'Leitura LO-2023-045', s: 'Hoje · extração concluída' },
@@ -57,7 +58,7 @@ function loadMessages() {
 }
 
 export default function AssistenteIA() {
-  const { upsertFromExtract, setScreen, openModal, toast } = useStore();
+  const { upsertFromExtract, setScreen, toast, licencas, demandas, evidencias } = useStore();
   const [messages, setMessages] = useState(loadMessages);
   const [attachments, setAttachments] = useState([]);
   const [text, setText] = useState('');
@@ -86,14 +87,26 @@ export default function AssistenteIA() {
     setTimeout(() => setScreen('licencas'), 800);
   }, [upsertFromExtract, toast, append, setScreen]);
 
-  // Conversa de texto: envia o prompt + histórico ao backend (Gemini).
+  // Conversa de texto contextual:
+  // 1) tenta responder a partir dos dados reais da plataforma (sem LLM);
+  // 2) caso aberto, envia ao backend (Gemini) com o contexto do sistema.
   async function sendChat(prompt) {
+    const conds = flattenCondicionantes(licencas, evidencias);
+    const local = responderLocal(prompt, { licencas, demandas, evidencias, conds });
+    if (local) {
+      append({ typing: true });
+      await sleep(450);
+      popTyping();
+      append({ role: 'bot', html: local });
+      return;
+    }
     const history = messages
       .filter((m) => (m.role === 'user' || m.role === 'bot') && typeof m.text === 'string' && m.text)
       .map((m) => ({ role: m.role === 'bot' ? 'assistant' : 'user', text: m.text }));
     append({ typing: true });
     try {
-      const reply = await chatWithAI(prompt, history);
+      const contexto = buildContext(licencas, demandas, conds);
+      const reply = await chatWithAI(`${contexto}\n\n## PERGUNTA DO USUÁRIO\n${prompt}`, history);
       popTyping();
       append({ role: 'bot', text: reply });
     } catch (err) {
@@ -141,6 +154,12 @@ export default function AssistenteIA() {
     if (kind === 'exemplo') return simulateExtraction('Licenca_Operacao_045-2023_CPRH.pdf');
   }
 
+  // Faz uma pergunta pronta (sugestões) — passa pelo roteador contextual.
+  async function askNow(q) {
+    append({ role: 'user', text: q });
+    await sendChat(q);
+  }
+
   async function doSend() {
     if (attachments.length) {
       const f = attachments[0];
@@ -171,7 +190,6 @@ export default function AssistenteIA() {
         <div className="ai-hist">
           <div className="nh">
             <button className="btn btn-primary btn-sm" style={{ width: '100%' }} onClick={() => { setMessages([]); setAttachments([]); }}><Icon name="plus" /> Nova conversa</button>
-            <button className="btn btn-ghost btn-sm" style={{ width: '100%', marginTop: 8 }} onClick={() => openModal('aiKey')}><Icon name="gear" /> Configurar IA</button>
           </div>
           <div style={{ padding: '8px 4px', flex: 1, overflow: 'auto' }}>
             <div className="ai-conv on">Conversa atual<small>Assistente de licenças</small></div>
@@ -183,14 +201,16 @@ export default function AssistenteIA() {
             {messages.length === 0 ? (
               <div className="ai-empty">
                 <div className="spark"><Icon name="spark" /></div>
-                <h3 style={{ color: 'var(--tinta)', fontSize: 17, margin: '0 0 6px' }}>Assistente de Licenças GML</h3>
+                <h3 style={{ color: 'var(--tinta)', fontSize: 17, margin: '0 0 6px' }}>Assistente A.L.I.A</h3>
                 <p style={{ margin: 0 }}>
                   Anexe o <b>PDF</b> ou a <b>imagem</b> de uma licença (botão 📎). A IA lê o documento por <b>OCR/visão</b>, identifica tipo, órgão, processo, validade e condicionantes — e cadastra a licença automaticamente.<br />
-                  <span style={{ fontSize: 11.5 }}>A leitura e o chat usam o <b>backend GML</b> (Gemini) — conectado automaticamente.</span>
+                  <span style={{ fontSize: 11.5 }}>Pergunte sobre seus dados ou anexe uma licença — conectado automaticamente, sem configuração.</span>
                 </p>
                 <div className="ai-suggest">
-                  <button onClick={() => handleSug('exemplo')}>📄 Ler licença de exemplo (demo)</button>
-                  <button onClick={() => fileRef.current.click()}>📎 Anexar PDF/imagem real</button>
+                  <button onClick={() => askNow('Quais licenças vencem este mês?')}>⏰ Quais licenças vencem este mês?</button>
+                  <button onClick={() => askNow('Quais condicionantes estão atrasadas?')}>⚠️ Condicionantes atrasadas</button>
+                  <button onClick={() => handleSug('exemplo')}>📄 Ler licença de exemplo</button>
+                  <button onClick={() => fileRef.current.click()}>📎 Anexar PDF/imagem</button>
                 </div>
               </div>
             ) : messages.map((m) => {

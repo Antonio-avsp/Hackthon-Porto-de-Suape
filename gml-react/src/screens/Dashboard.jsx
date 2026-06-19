@@ -1,8 +1,19 @@
 import React from 'react';
-import { TIPOS, GANTT, COR, AGENDA, AG_COR, AG_NOME } from '../data.js';
+import { TIPOS, GANTT, COR, AGENDA, AG_COR, AG_NOME, tipoNome } from '../data.js';
 import { Icon } from '../icons.jsx';
-import { Dot } from '../ui.jsx';
+import { Dot, InfoTip } from '../ui.jsx';
 import { useStore } from '../store.jsx';
+import { flattenCondicionantes, COND_INDICADORES } from '../lib/insights.js';
+
+const COND_TIP = {
+  total: 'Total de obrigações legais (condicionantes) vinculadas às licenças ativas.',
+  andamento: 'Condicionantes sendo executadas dentro do prazo.',
+  proximas: 'Condicionantes cujo prazo de atendimento se aproxima e exigem atenção.',
+  vencidas: 'Condicionantes com prazo vencido ou em risco — exigem ação imediata.',
+  concluidas: 'Condicionantes já cumpridas e comprovadas.',
+  sem_evidencia: 'Condicionantes que ainda não possuem evidência (foto/relatório) vinculada.',
+  sem_protocolo: 'Condicionantes cujo protocolo de comprovação ainda não foi enviado ao órgão.',
+};
 
 const ALERTS = [
   { ic: 'warn', c: '#DC3545', b: '1 licença vence em 7 dias', s: 'LO-2023-045 · Licença de Operação · CPRH' },
@@ -36,8 +47,9 @@ function Calendar() {
 }
 
 export default function Dashboard() {
-  const { setScreen } = useStore();
+  const { setScreen, licencas, evidencias, openModal } = useStore();
   const totalAtivas = TIPOS.reduce((a, t) => a + t.ativas, 0);
+  const conds = flattenCondicionantes(licencas, evidencias);
   return (
     <div className="view grid">
       <div className="card">
@@ -49,6 +61,7 @@ export default function Dashboard() {
           {TIPOS.map((t) => (
             <div className="kpi" key={t.sigla}>
               <div className="bar" style={{ background: t.cor }} />
+              <InfoTip text={`${tipoNome(t.sigla)} — ${t.desc}`} />
               <div className="lbl">{t.sigla}</div>
               <div className="val" style={{ color: t.cor }}>{t.ativas}</div>
               <div className="meta">
@@ -56,6 +69,23 @@ export default function Dashboard() {
                 {t.venc ? <span className="chip" style={{ color: 'var(--vermelho)' }}>● {t.venc} vencida{t.venc > 1 ? 's' : ''}</span> : null}
                 {t.prox ? <span className="chip" style={{ color: 'var(--amarelo)' }}>● {t.prox} a vencer</span> : null}
               </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-head">
+          <div><h3>Condicionantes</h3><div className="sub">Controle inteligente — clique num indicador para ver os registros</div></div>
+          <span className="tag" style={{ background: '#2E60AD1f', color: '#2E60AD' }}>{conds.length} no total</span>
+        </div>
+        <div className="kpis" style={{ gridTemplateColumns: 'repeat(7,1fr)' }}>
+          {COND_INDICADORES.map((ind) => (
+            <div className="kpi click" key={ind.key} onClick={() => openModal('condList', ind.key)}>
+              <div className="bar" style={{ background: ind.cor }} />
+              <InfoTip text={COND_TIP[ind.key]} />
+              <div className="lbl">{ind.label}</div>
+              <div className="val" style={{ color: ind.cor }}>{conds.filter(ind.pred).length}</div>
             </div>
           ))}
         </div>
