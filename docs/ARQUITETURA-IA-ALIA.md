@@ -170,6 +170,11 @@ linguagem natural; **todo número vem de dado real**; **sempre há fallback dete
   valida e normaliza a extração (datas → DD/MM/AAAA, órgão canônico, nº de processo no formato,
   periodicidade canônica, enums) **antes** de virar cadastro, devolvendo `validacao.avisos`
   auditáveis — espelhando o `validar_e_normalizar` do BB.
+- **Automação anexar → ler → planilha** ✅ (implementado, ver §6.8): `/ai/licenses/ingest` extrai +
+  valida + cadastra (auto se limpo; revisão de 1 clique se houver avisos) e
+  `GET /spreadsheet/controle.xlsx` devolve a planilha do cliente preenchida.
+- **Fase 6 — Persistência Supabase Postgres** (deploy): trocar o store de arquivo por Postgres via
+  `DATABASE_URL` (interface do repositório já pronta) — necessário em produção no Render (disco efêmero).
 - **Fase 5 — Relatórios ricos via LLM** (próximo): resumo executivo / relatório de conformidade /
   plano de ação narrados pelo modelo sobre o snapshot (com o fallback determinístico já pronto).
 
@@ -277,6 +282,39 @@ modelo** sobre o mesmo contexto, mantendo a validação e o fallback.
   o `AssistenteIA.jsx` mostra os avisos no chat antes de "Preencher cadastro".
 - Coberto por `test/licenseValidation.test.js`. **Fase 3 + 4 conectadas:** OCR → extração validada →
   "Preencher cadastro" → `upsertFromExtract` persistido no backend.
+
+### 6.8 Automação: anexar → ler → planilha (sem trabalho manual)
+Fluxo ponta a ponta, com a regra **auto quando limpo / revisão de 1 clique quando há aviso**:
+
+```
+Anexa PDF/imagem → /ai/licenses/ingest
+   → extractFromFile (Gemini, JSON por schema) → validateAndNormalizeLicense (Fase 4)
+   → validacao.ok ?  SIM → upsertFromExtract (fonte única, persistido)  → status "ingested"
+                      NÃO → devolve extração + avisos                    → status "review"
+                            → /ai/licenses/ingest/confirm (1 clique)     → grava
+   → GET /spreadsheet/controle.xlsx  → planilha do cliente preenchida (projeção do estado)
+```
+
+- **`spreadsheet.service.js`** — usa o **template do cliente** (`src/templates/…xlsx`) e **ANEXA** as
+  licenças num bloco rotulado, mapeando cada campo para a **coluna certa por cabeçalho** (B..AD).
+  Decisão validada empiricamente: **não reescrevemos o arquivo-mestre** (o writer corrompe a
+  formatação condicional → Excel pede "reparar"); removemos a formatação condicional na cópia e
+  **nunca sobrescrevemos** dados/seções existentes. Fallback `buildFresh` (workbook limpo, mesmas
+  colunas) se o template faltar.
+- **`spreadsheet.controller.js` + route** — `GET /api/spreadsheet/controle.xlsx` gera do estado real.
+- **Extração estendida** (`license.schema.js`/`license.service.js`) — agora também extrai `numero`
+  (nº da licença), `data_emissao`, `objeto`, `localizacao` — as colunas que o documento alimenta. As
+  colunas internas de processo (área demandante, ofício SUAPE, prazos internos, SEI…) ficam em branco
+  por design (não estão no documento).
+- **Frontend** — `AssistenteIA.jsx` usa `/ingest` (auto/revisão), mostra os avisos e oferece
+  **"Baixar planilha de controle"**; após cadastrar, `reloadState` re-sincroniza o estado.
+- **Testes** — `test/spreadsheet*.test.js` leem o `.xlsx` de volta e validam colunas, preservação
+  dos dados do cliente e o modo limpo (43 testes no total).
+
+> **Persistência em produção (Render):** o disco é efêmero → o estado em `.data/` se perde no deploy.
+> A planilha é uma **projeção** do estado, então a verdade precisa morar num banco: defina
+> `DATABASE_URL` (Supabase Postgres). A interface do repositório já isola a persistência — só falta a
+> implementação do adapter Postgres (Fase 6). Até lá, funciona com o store de arquivo (ótimo para dev/demo).
 
 ## 7. Como rodar e testar
 

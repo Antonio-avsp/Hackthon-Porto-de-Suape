@@ -35,6 +35,10 @@ const env = Object.freeze({
   databaseUrl: process.env.DATABASE_URL || '',
   dataFile: process.env.ALIA_DATA_FILE || '',
 
+  // Caminho do template .xlsx do cliente (Fase 5). Vazio → gera planilha limpa
+  // com o mesmo layout de colunas (funciona em qualquer ambiente).
+  spreadsheetTemplate: process.env.SPREADSHEET_TEMPLATE || '',
+
   // Data de referência do cenário (âncora dos prazos do domínio). Mantém a
   // narrativa do protótipo coerente (12/06/2025) e centraliza o "hoje" no servidor.
   referenceDate: process.env.REFERENCE_DATE || '12/06/2025',

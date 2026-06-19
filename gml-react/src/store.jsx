@@ -29,20 +29,21 @@ export function StoreProvider({ children }) {
   useEffect(() => { demandasRef.current = demandas; }, [demandas]);
   useEffect(() => { evidenciasRef.current = evidencias; }, [evidencias]);
 
+  // Re-sincroniza o estado a partir do backend (fonte única). Usado no mount e
+  // após a automação de ingestão (que grava no servidor, fora do store).
+  const reloadState = useCallback(async () => {
+    try {
+      const s = await fetchEnvState();
+      if (!s) return;
+      if (Array.isArray(s.licencas)) setLicencas(s.licencas);
+      if (Array.isArray(s.demandas)) setDemandas(s.demandas);
+      if (Array.isArray(s.evidencias)) setEvidencias(s.evidencias);
+    } catch { /* offline → mantém o estado atual */ }
+  }, []);
+
   // Fase 3: hidrata o estado a partir do backend (sobrevive a refresh/nova sessão/
   // dispositivo). Se o backend estiver fora do ar, mantém o seed local.
-  useEffect(() => {
-    let vivo = true;
-    fetchEnvState()
-      .then((s) => {
-        if (!vivo || !s) return;
-        if (Array.isArray(s.licencas)) setLicencas(s.licencas);
-        if (Array.isArray(s.demandas)) setDemandas(s.demandas);
-        if (Array.isArray(s.evidencias)) setEvidencias(s.evidencias);
-      })
-      .catch(() => { /* offline → segue com o seed local */ });
-    return () => { vivo = false; };
-  }, []);
+  useEffect(() => { reloadState(); }, [reloadState]);
 
   const toast = useCallback((msg) => {
     const id = ++toastId;
@@ -116,7 +117,7 @@ export function StoreProvider({ children }) {
 
   const value = {
     screen, setScreen,
-    licencas, addLicenca, updateLicenca, deleteLicenca, upsertFromExtract,
+    licencas, addLicenca, updateLicenca, deleteLicenca, upsertFromExtract, reloadState,
     demandas, addDemanda, deleteDemanda,
     evidencias, addEvidencia,
     licFilter, setLicFilter, pdFilter, setPdFilter,
