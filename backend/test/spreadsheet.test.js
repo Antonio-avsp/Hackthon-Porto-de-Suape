@@ -57,6 +57,25 @@ test('TEMPLATE: preserva dados do cliente (Jazida) e as 5 abas', async () => {
   assert.ok(acharLinha(ws, 'Jazida'), 'linha original do cliente preservada (não sobrescrita)');
 });
 
+test('TEMPLATE: endereço/CEP vão p/ LOCALIZAÇÃO e CNPJ/protocolo p/ OBSERVAÇÃO', async () => {
+  const estado = { licencas: [{
+    id: 'AUT-1708', sigla: 'AUT', orgao: 'CPRH', numero: '001708/2025', processo: '001708/2025',
+    protocolo: '002491-3', dataEmissao: '24/04/2025', validade: '24/04/2026',
+    endereco: 'FAZ ENGENHO MASSANGANA, KM 10 ROD PE 60', municipio: 'Ipojuca - PE', cep: '55590-000',
+    cnpjCpf: '11.448.933/0001-62', status: 'andamento', resp: 'Equipes internas', cond: [],
+  }] };
+  const wb = await load(await gerarBuffer(estado));
+  const ws = wb.getWorksheet(REGISTRY_SHEET);
+  const hm = headerMap(ws);
+  const linha = acharLinha(ws, '001708/2025');
+  assert.ok(linha, 'linha importada presente');
+  const val = (h) => String(ws.getRow(linha).getCell(hm.map[norm(h)]).value || '');
+  assert.match(val('LOCALIZAÇÃO'), /MASSANGANA/);
+  assert.match(val('LOCALIZAÇÃO'), /55590-000/);
+  assert.match(val('OBSERVAÇÃO'), /11\.448\.933\/0001-62/);
+  assert.match(val('OBSERVAÇÃO'), /002491-3/);
+});
+
 test('TEMPLATE: bloco rotulado da A.L.I.A. é adicionado', async () => {
   const wb = await load(await gerarBuffer(STATE));
   const ws = wb.getWorksheet(REGISTRY_SHEET);

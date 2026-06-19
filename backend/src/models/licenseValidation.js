@@ -16,7 +16,7 @@ const ORGAOS_CANONICOS = [
   'CPRH', 'IBAMA', 'APAC', 'ANA', 'MPF', 'MPPE', 'Prefeitura', 'ICMBio',
   'FUNAI', 'IPHAN', 'ANTAQ', 'SEMAS', 'Marinha',
 ];
-const PERIODICIDADES = ['Mensal', 'Bimestral', 'Trimestral', 'Semestral', 'Anual', 'Única', 'Contínua', 'Eventual'];
+const PERIODICIDADES = ['Mensal', 'Bimestral', 'Trimestral', 'Semestral', 'Anual', 'Única', 'Contínua', 'Eventual', 'Pontual', 'Quinzenal', 'Diária'];
 
 const semAcento = (s) => String(s || '').normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
@@ -40,10 +40,15 @@ export function normalizeDate(str) {
   return { value, valid: true, changed: value !== raw, date: dt };
 }
 
-/** Mapeia o órgão para a grafia canônica conhecida (ou mantém com aviso). */
+/** Mapeia o órgão para a grafia canônica conhecida. Reconhece a sigla mesmo
+ * dentro do nome completo (ex.: "Agência Estadual de Meio Ambiente - CPRH"). */
 export function normalizeOrgao(str) {
-  const alvo = semAcento(str).replace(/\s+/g, '');
-  const hit = ORGAOS_CANONICOS.find((o) => semAcento(o).replace(/\s+/g, '') === alvo);
+  const full = semAcento(str);
+  const compact = full.replace(/\s+/g, '');
+  const hit = ORGAOS_CANONICOS.find((o) => {
+    const k = semAcento(o);
+    return compact === k.replace(/\s+/g, '') || new RegExp(`\\b${k}\\b`).test(full);
+  });
   if (hit) return { value: hit, known: true };
   const limpo = String(str || '').trim();
   return { value: limpo || '—', known: false };
@@ -67,7 +72,8 @@ const PROCESSO_RE = /^\d{3,4}\.\d{2,4}\.[A-Z]{2}$/i;
  * @returns {{ license: object, validacao: { ok: boolean, avisos: string[] } }}
  */
 export function validateAndNormalizeLicense(license = {}) {
-  const avisos = [];
+  const avisos = [];        // informativos (mostrados, não travam o auto-commit)
+  const bloqueantes = [];   // problemas que exigem revisão antes de cadastrar
   const out = { ...license };
 
   // Sigla / risco (enums) — reforço (adapt já tratou, mas garantimos coerência).
@@ -79,9 +85,16 @@ export function validateAndNormalizeLicense(license = {}) {
   if (!org.known && org.value !== '—') avisos.push(`Órgão "${out.orgao}" não está na lista conhecida — confira a grafia.`);
   out.orgao = org.value;
 
-  // Nº do processo
-  if (out.processo && out.processo !== '—' && !PROCESSO_RE.test(out.processo.trim())) {
-    avisos.push(`Nº de processo "${out.processo}" fora do formato esperado (ex.: 2023.045.PE) — confirme.`);
+  // Nº do processo — leniente: aceita formatos reais (001708/2025, 2023.045.PE,
+  // SEI 0050200040.000348/2021-94). Só sinaliza se claramente incompleto.
+  if (out.processo && out.processo !== '—' && out.processo.replace(/\D/g, '').length < 4) {
+    avisos.push(`Nº de processo "${out.processo}" parece incompleto — confira.`);
+  }
+
+  // CEP — normaliza para NNNNN-NNN quando vier só com dígitos.
+  if (out.cep && out.cep !== '—') {
+    const dig = String(out.cep).replace(/\D/g, '');
+    if (dig.length === 8) out.cep = `${dig.slice(0, 5)}-${dig.slice(5)}`;
   }
 
   // Data de emissão (quando presente)
@@ -94,7 +107,7 @@ export function validateAndNormalizeLicense(license = {}) {
   // Validade (data) + coerência com a data de referência
   const val = normalizeDate(out.validade);
   if (out.validade && out.validade !== '—' && !val.valid) {
-    avisos.push(`Data de validade "${out.validade}" inválida — preencha manualmente.`);
+    bloqueantes.push(`Data de validade "${out.validade}" inválida — preencha manualmente.`);
   } else if (val.changed && val.valid) {
     avisos.push(`Data de validade normalizada para ${val.value}.`);
   }
@@ -118,7 +131,12 @@ export function validateAndNormalizeLicense(license = {}) {
     return item;
   });
 
-  return { license: out, validacao: { ok: avisos.length === 0, avisos } };
+  // ok = sem BLOQUEANTES → permite auto-commit mesmo com avisos informativos.
+  // avisos (exibidos) trazem os bloqueantes primeiro, depois os informativos.
+  return {
+    license: out,
+    validacao: { ok: bloqueantes.length === 0, avisos: [...bloqueantes, ...avisos], bloqueantes },
+  };
 }
 
 function parseRef(str) {

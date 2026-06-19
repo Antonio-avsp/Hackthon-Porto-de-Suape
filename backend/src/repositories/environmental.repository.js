@@ -105,7 +105,8 @@ export function upsertFromExtract(d = {}) {
   const cond = (d.cond || []).map((c) => ({ nome: c.descricao || c.nome, per: c.periodicidade || c.per, prog: 0, st: 'pendente' }));
   // Campos derivados do documento que alimentam a planilha de controle.
   const derivados = {
-    numero: d.numero, dataEmissao: d.dataEmissao, objeto: d.objeto,
+    numero: d.numero, protocolo: d.protocolo, dataEmissao: d.dataEmissao, objeto: d.objeto,
+    endereco: d.endereco, municipio: d.municipio, cep: d.cep, cnpjCpf: d.cnpjCpf,
     localizacao: d.localizacao, descricao: d.descricao, resumo: d.resumo,
   };
   const i = s.licencas.findIndex((l) => l.processo === d.processo && l.sigla === d.sigla);

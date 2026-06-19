@@ -17,10 +17,13 @@ const SYSTEM_INSTRUCTION =
   'Você é um analista sênior de gestão ambiental especializado em licenciamento brasileiro.';
 
 const EXTRACTION_PROMPT =
-  'Leia esta licença ambiental brasileira e extraia os dados de forma fiel ao documento. ' +
+  'Leia esta licença/autorização ambiental brasileira e extraia os dados de forma fiel ao documento ' +
+  '(os campos costumam vir numerados e rotulados, ex.: "3 - Endereço", "5 - CEP", "6 - CNPJ / CPF", "12 - DATA EMISSÃO"). ' +
   `Identifique: a sigla do tipo (uma de: ${SIGLAS_VALIDAS.join(', ')}); o órgão emissor; ` +
   'o número da licença/autorização (campo "numero"); o número do processo administrativo (campo "processo"); ' +
-  'a data de emissão (data_emissao) e a data de validade; o objeto/empreendimento e a localização; ' +
+  'o número de protocolo/solicitação (protocolo); o objeto/empreendimento ou razão social (objeto); ' +
+  'o endereço/logradouro (endereco); o município e UF (municipio); o CEP (cep); o CNPJ ou CPF do empreendedor/requerente (cnpj_cpf); ' +
+  'a data de emissão (data_emissao) e a data de validade (validade); ' +
   'uma classificação de risco geral (Baixo, Médio ou Alto); um resumo de uma frase; ' +
   'e todas as condicionantes (descrição, periodicidade, prazo e risco). Datas no formato DD/MM/AAAA. ' +
   'Se algum campo não constar no documento, retorne "—". Responda apenas com os dados estruturados.';

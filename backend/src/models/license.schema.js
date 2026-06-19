@@ -27,9 +27,14 @@ export const LICENSE_RESPONSE_SCHEMA = {
     orgao: { type: 'string' },
     numero: { type: 'string' },          // N° da licença/autorização
     processo: { type: 'string' },        // N° do processo administrativo
+    protocolo: { type: 'string' },       // N° de protocolo / solicitação
     data_emissao: { type: 'string' },    // Data de emissão
     validade: { type: 'string' },
-    objeto: { type: 'string' },          // Objeto / empreendimento
+    objeto: { type: 'string' },          // Objeto / empreendimento / razão social
+    endereco: { type: 'string' },        // Endereço / logradouro
+    municipio: { type: 'string' },       // Município / UF
+    cep: { type: 'string' },             // CEP
+    cnpj_cpf: { type: 'string' },        // CNPJ ou CPF do empreendedor/requerente
     localizacao: { type: 'string' },     // Localização do empreendimento
     classificacao_risco: { type: 'string', enum: RISCOS_VALIDOS },
     resumo: { type: 'string' },
@@ -63,8 +68,13 @@ export function adaptLicenseExtract(raw = {}) {
     orgao: raw.orgao || '—',
     numero: raw.numero || '—',
     processo: raw.processo || '—',
+    protocolo: raw.protocolo || '—',
     dataEmissao: raw.data_emissao || '—',
     objeto: raw.objeto || '—',
+    endereco: raw.endereco || '—',
+    municipio: raw.municipio || '—',
+    cep: raw.cep || '—',
+    cnpjCpf: raw.cnpj_cpf || '—',
     localizacao: raw.localizacao || '—',
     descricao: raw.descricao || raw.resumo || '—',
     validade: raw.validade || '—',
