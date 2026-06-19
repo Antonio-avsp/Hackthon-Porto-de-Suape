@@ -5,3 +5,6 @@ node_modules/
 coverage/
 dist/
 .DS_Store
+
+# Estado ambiental persistido (Fase 3) — runtime, não versionar
+.data/

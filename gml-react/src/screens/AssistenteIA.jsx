@@ -97,8 +97,7 @@ export default function AssistenteIA() {
       .map((m) => ({ role: m.role === 'bot' ? 'assistant' : 'user', text: m.text }));
     append({ typing: true });
     try {
-      const estado = { licencas, demandas, evidencias };
-      const data = await assistAI(prompt, estado, history);
+      const data = await assistAI(prompt, history);
       popTyping();
       append({ role: 'bot', text: data.resposta, assist: data });
     } catch (err) {
@@ -133,6 +132,9 @@ export default function AssistenteIA() {
       popTyping();
       append({ role: 'bot', html: `Li o arquivo <b>${file.name}</b> via backend (IA) e identifiquei uma <b>${d.tipo}</b> do órgão <b>${d.orgao}</b>. Dados extraídos:` });
       append({ extract: d });
+      // Fase 4: avisos da validação/normalização automática (texto puro, anti-XSS).
+      const avisos = (d.validacao && d.validacao.avisos) || [];
+      if (avisos.length) append({ role: 'bot', text: '⚠️ Validação automática: ' + avisos.join(' · ') });
       append({ role: 'bot', html: 'Posso <b>preencher o cadastro</b> automaticamente ou <b>exportar para Excel</b> — é só clicar acima. ✅' });
     } catch (err) {
       popTyping();

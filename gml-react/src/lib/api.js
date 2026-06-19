@@ -60,26 +60,62 @@ export async function extractLicense(file) {
 
 /**
  * POST /api/ai/assist — assistente contextual da A.L.I.A.
- * Envia o ESTADO REAL da plataforma para o backend, que roda a camada de
- * intenção determinística + contexto + modelo (espelha o Consultor IA do BB).
+ * O backend é a FONTE ÚNICA DE VERDADE (Fase 3): roda intenção determinística +
+ * contexto + modelo sobre o estado PERSISTIDO no servidor (espelha o Consultor
+ * IA do BB). Não é preciso enviar o estado — basta a pergunta e o histórico.
  * @param {string} prompt
- * @param {{licencas?:Array,demandas?:Array,evidencias?:Array}} [estado]
  * @param {Array<{role:string,text:string}>} [history]
  * @returns {Promise<{resposta:string,destaques:string[],acao_sugerida:string,intencao:string,fonte:string,kpis:object,score:object}>}
  */
-export async function assistAI(prompt, estado = {}, history = []) {
+export async function assistAI(prompt, history = []) {
   let resp;
   try {
     resp = await fetch(`${getApiBase()}/api/ai/assist`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, estado, history }),
+      body: JSON.stringify({ prompt, history }),
     });
   } catch {
     throw connectionError();
   }
   return parse(resp); // { resposta, destaques, acao_sugerida, intencao, fonte, kpis, score, conversationId }
 }
+
+// ---- Estado ambiental (Fase 3: fonte única no servidor) ----
+
+/** GET /api/environmental/state — estado persistido (licenças, demandas, evidências). */
+export async function fetchEnvState() {
+  let resp;
+  try {
+    resp = await fetch(`${getApiBase()}/api/environmental/state`);
+  } catch {
+    throw connectionError();
+  }
+  return parse(resp);
+}
+
+async function envFetch(pathname, method, body) {
+  let resp;
+  try {
+    resp = await fetch(`${getApiBase()}/api/environmental${pathname}`, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+  } catch {
+    throw connectionError();
+  }
+  return parse(resp);
+}
+
+export const envApi = {
+  addLicenca: (lic) => envFetch('/licencas', 'POST', lic),
+  updateLicenca: (id, patch) => envFetch(`/licencas/${encodeURIComponent(id)}`, 'PATCH', patch),
+  deleteLicenca: (id) => envFetch(`/licencas/${encodeURIComponent(id)}`, 'DELETE'),
+  upsertFromExtract: (extract) => envFetch('/licencas/extract-upsert', 'POST', extract),
+  replaceDemandas: (demandas) => envFetch('/demandas', 'PUT', { demandas }),
+  replaceEvidencias: (evidencias) => envFetch('/evidencias', 'PUT', { evidencias }),
+};
 
 /**
  * POST /api/ai/chat — conversa de texto direta com o modelo (legado/aberto).

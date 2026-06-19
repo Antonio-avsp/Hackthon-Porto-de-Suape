@@ -5,6 +5,13 @@
 // ============================================================
 import geminiService from './geminiService.js';
 import { LICENSE_RESPONSE_SCHEMA, adaptLicenseExtract, SIGLAS_VALIDAS } from '../models/license.schema.js';
+import { validateAndNormalizeLicense } from '../models/licenseValidation.js';
+
+/** Adapta + valida/normaliza a extração (Fase 4) antes de virar cadastro. */
+function adaptarEValidar(raw) {
+  const { license, validacao } = validateAndNormalizeLicense(adaptLicenseExtract(raw));
+  return { ...license, validacao };
+}
 
 const SYSTEM_INSTRUCTION =
   'Você é um analista sênior de gestão ambiental especializado em licenciamento brasileiro.';
@@ -33,7 +40,7 @@ export const licenseService = {
       schema: LICENSE_RESPONSE_SCHEMA,
       systemInstruction: SYSTEM_INSTRUCTION,
     });
-    return adaptLicenseExtract(raw);
+    return adaptarEValidar(raw);
   },
 
   /**
@@ -48,7 +55,7 @@ export const licenseService = {
       schema: LICENSE_RESPONSE_SCHEMA,
       systemInstruction: SYSTEM_INSTRUCTION,
     });
-    return adaptLicenseExtract(raw);
+    return adaptarEValidar(raw);
   },
 };
 
